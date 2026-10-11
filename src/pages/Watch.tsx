@@ -1,0 +1,530 @@
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
+import {
+  ArrowLeft,
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  ExternalLink,
+  Heart,
+  RefreshCw,
+} from "lucide-react";
+import { describeError, getDetail, getEpisode, getHome } from "../lib/api/anime";
+import { markWatched, readLibrary, writeLibrary } from "../lib/storage";
+import type { LibraryItem } from "../lib/storage";
+import type { AnimeDetail, AnimeItem, EpisodeDetail } from "../types/anime";
+
+const EPISODE_LIMIT = 25;
+
+const watchPath = (slug: string) => `/watch/${encodeURIComponent(slug)}`;
+const detailPath = (slug: string) => `/detail/${encodeURIComponent(slug)}`;
+
+function NavButton({
+  to,
+  primary = false,
+  children,
+}: {
+  to?: string;
+  primary?: boolean;
+  children: React.ReactNode;
+}) {
+  const base =
+    "flex h-11 flex-1 items-center justify-center gap-1 rounded-full text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#D0BCFF]";
+
+  if (!to) {
+    return (
+      <span
+        aria-disabled="true"
+        className={`${base} ${
+          primary
+            ? "bg-[#E6E0E9]/[0.12] text-[#E6E0E9]/40"
+            : "border border-[#E6E0E9]/[0.12] text-[#E6E0E9]/40"
+        }`}
+      >
+        {children}
+      </span>
+    );
+  }
+
+  return (
+    <Link
+      to={to}
+      replace
+      className={`${base} ${
+        primary
+          ? "bg-[#D0BCFF] text-[#381E72] hover:bg-[#DCCBFF]"
+          : "border border-[#938F99] text-[#D0BCFF] hover:bg-[#D0BCFF]/[0.08]"
+      }`}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function SectionTitle({
+  title,
+  action,
+}: {
+  title: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between px-4 pb-2">
+      <h2 className="text-lg font-medium leading-7">{title}</h2>
+      {action}
+    </div>
+  );
+}
+
+function RecCard({ item }: { item: AnimeItem }) {
+  return (
+    <Link
+      to={detailPath(item.seriesSlug)}
+      className="group block w-28 shrink-0 snap-start outline-none"
+    >
+      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-[#2B2930] group-focus-visible:ring-2 group-focus-visible:ring-[#D0BCFF]">
+        <img
+          src={item.poster}
+          alt=""
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
+        />
+        {item.episode && (
+          <span className="absolute bottom-2 left-2 rounded-full bg-[#141218]/80 px-2 py-0.5 text-xs font-medium text-[#EADDFF] backdrop-blur-sm">
+            {item.episode}
+          </span>
+        )}
+      </div>
+      <h3 className="mt-2 line-clamp-2 text-xs font-medium leading-4 text-[#E6E0E9]">
+        {item.title}
+      </h3>
+    </Link>
+  );
+}
+
+function InfoSkeleton() {
+  return (
+    <div aria-hidden="true">
+      <div className="mt-6 space-y-2 px-4">
+        <div className="h-5 w-24 animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
+        <div className="h-4 w-full animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
+        <div className="h-4 w-full animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
+        <div className="h-4 w-2/3 animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
+      </div>
+      <div className="mt-6 px-4">
+        <div className="mb-3 h-5 w-32 animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
+        <div className="grid grid-cols-5 gap-2 sm:grid-cols-8">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-10 animate-pulse rounded-full bg-[#2B2930] motion-reduce:animate-none"
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Watch() {
+  const { slug = "" } = useParams();
+  const navigate = useNavigate();
+
+  const [episode, setEpisode] = useState<EpisodeDetail | null>(null);
+  const [detail, setDetail] = useState<AnimeDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [recs, setRecs] = useState<AnimeItem[]>([]);
+  const [watched, setWatched] = useState<string[]>([]);
+  const [library, setLibrary] = useState<LibraryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [streamIndex, setStreamIndex] = useState(0);
+  const [showAll, setShowAll] = useState(false);
+  const [plotOpen, setPlotOpen] = useState(false);
+  const [toast, setToast] = useState("");
+
+  const downloadRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setLibrary(readLibrary());
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    getHome(1)
+      .then((res) => {
+        if (!cancelled) setRecs(res.items);
+      })
+      .catch(() => {
+        if (!cancelled) setRecs([]);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    setStreamIndex(0);
+    window.scrollTo({ top: 0 });
+
+    getEpisode(slug)
+      .then((res) => { if (!cancelled) setEpisode(res); })
+      .catch((e) => { if (!cancelled) setError(describeError(e)); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [slug, reloadKey]);
+
+  const animeSlug = episode?.animeSlug;
+
+  useEffect(() => {
+    if (!animeSlug) return;
+    let cancelled = false;
+    setDetail(null);
+    setDetailLoading(true);
+    setPlotOpen(false);
+    setShowAll(false);
+
+    getDetail(animeSlug)
+      .then((res) => { if (!cancelled) setDetail(res); })
+      .catch(() => { if (!cancelled) setDetail(null); })
+      .finally(() => { if (!cancelled) setDetailLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [animeSlug]);
+
+  useEffect(() => {
+    if (!animeSlug) return;
+    setWatched(markWatched(animeSlug, slug));
+  }, [animeSlug, slug]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(""), 2000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const episodes = detail?.episodes ?? [];
+  const index = episodes.findIndex((e) => e.slug === slug);
+  const prev = index > 0 ? episodes[index - 1] : undefined;
+  const next = index >= 0 && index < episodes.length - 1 ? episodes[index + 1] : undefined;
+
+  const forceAll = index >= EPISODE_LIMIT;
+  const expandedAll = showAll || forceAll;
+  const visibleEpisodes = expandedAll ? episodes : episodes.slice(0, EPISODE_LIMIT);
+
+  const stream = episode?.streams[streamIndex];
+  const title = episode?.title.replace(/\s*Subtitle Indonesia$/i, "") ?? "";
+  const metaLine = detail
+    ? [detail.type, detail.status, detail.duration?.replace(/\s*per ep\.?/i, "")]
+        .filter(Boolean)
+        .join(" • ")
+    : "";
+
+  const inLibrary = !!animeSlug && library.some((l) => l.slug === animeSlug);
+  const otherRecs = recs.filter((r) => r.seriesSlug !== animeSlug);
+
+  const toggleLibrary = () => {
+    if (!detail || !animeSlug) return;
+    const updated = inLibrary
+      ? library.filter((l) => l.slug !== animeSlug)
+      : [{ slug: animeSlug, title: detail.title, poster: detail.poster }, ...library];
+    setLibrary(updated);
+    writeLibrary(updated);
+    setToast(inLibrary ? "Dihapus dari library" : "Ditambahkan ke library");
+  };
+
+  const scrollToDownloads = () =>
+    downloadRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  const circleButton =
+    "flex h-10 w-10 items-center justify-center rounded-full border border-[#49454F] text-[#E6E0E9] outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] focus-visible:ring-2 focus-visible:ring-[#D0BCFF] disabled:opacity-40";
+
+  return (
+    <div className="min-h-screen bg-[#141218] pb-24 text-[#E6E0E9]">
+      <header className="sticky top-0 z-40 bg-[#141218]/90 pt-[env(safe-area-inset-top)] backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-3xl items-center gap-1 px-2">
+          <button
+            onClick={() => navigate(-1)}
+            aria-label="Kembali"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="line-clamp-1 flex-1 pr-2 text-base font-medium">
+            {detail?.title ?? title}
+          </h1>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-3xl">
+        {/* Player */}
+        <div className="px-4">
+          <div className="aspect-video w-full overflow-hidden rounded-2xl bg-black">
+            {loading && (
+              <div className="h-full w-full animate-pulse bg-[#2B2930] motion-reduce:animate-none" />
+            )}
+            {!loading && stream && (
+              <iframe
+                key={stream.url}
+                src={stream.url}
+                title={title}
+                allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                allowFullScreen
+                className="h-full w-full border-0"
+              />
+            )}
+            {!loading && !error && !stream && (
+              <div className="flex h-full items-center justify-center px-6 text-center text-sm text-[#CAC4D0]">
+                Belum ada sumber video untuk episode ini.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {!loading && error && (
+          <div className="mx-4 mt-4 flex flex-col items-start gap-3 rounded-2xl bg-[#2B2930] p-4">
+            <p className="text-sm text-[#CAC4D0]">{error}</p>
+            <button
+              onClick={() => setReloadKey((k) => k + 1)}
+              className="flex h-10 items-center gap-2 rounded-full bg-[#4F378B] px-4 text-sm font-medium text-[#EADDFF] outline-none transition-colors hover:bg-[#5A42A0] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+            >
+              <RefreshCw size={18} />
+              Coba lagi
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && episode && (
+          <>
+            {/* Stream selector */}
+            {episode.streams.length > 1 && (
+              <section
+                aria-label="Sumber video"
+                className="mt-3 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {episode.streams.map((s, i) => (
+                  <button
+                    key={s.url}
+                    onClick={() => setStreamIndex(i)}
+                    aria-pressed={i === streamIndex}
+                    className={`flex h-8 shrink-0 items-center whitespace-nowrap rounded-full px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#D0BCFF] ${
+                      i === streamIndex
+                        ? "bg-[#D0BCFF] text-[#381E72]"
+                        : "border border-[#49454F] text-[#CAC4D0] hover:bg-[#D0BCFF]/[0.08]"
+                    }`}
+                  >
+                    {s.name}
+                  </button>
+                ))}
+              </section>
+            )}
+
+            {/* Judul + tombol */}
+            <section className="flex items-start gap-3 px-4 pt-4">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-[22px] font-medium leading-7">{title}</h2>
+                {metaLine && <p className="mt-1 text-sm text-[#CAC4D0]">{metaLine}</p>}
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <button
+                  onClick={toggleLibrary}
+                  disabled={!detail}
+                  aria-label={inLibrary ? "Hapus dari library" : "Tambah ke library"}
+                  aria-pressed={inLibrary}
+                  className={circleButton}
+                >
+                  <Heart size={20} className={inLibrary ? "fill-[#D0BCFF] text-[#D0BCFF]" : ""} />
+                </button>
+                {episode.downloads.length > 0 && (
+                  <button
+                    onClick={scrollToDownloads}
+                    aria-label="Ke bagian download"
+                    className={circleButton}
+                  >
+                    <Download size={20} />
+                  </button>
+                )}
+              </div>
+            </section>
+
+            {/* Sinopsis + badge episode (skeleton saat detail loading) */}
+            {detailLoading && !detail ? (
+              <InfoSkeleton />
+            ) : (
+              <>
+                {detail?.synopsis && (
+                  <section className="mt-4 px-4">
+                    <h2 className="text-base font-semibold leading-6 text-[#E6E0E9]">Sinopsis</h2>
+                    <p
+                      className={`mt-1.5 whitespace-pre-line text-sm leading-6 text-[#CAC4D0] ${
+                        plotOpen ? "" : "line-clamp-4"
+                      }`}
+                    >
+                      {detail.synopsis}
+                    </p>
+                    <button
+                      onClick={() => setPlotOpen((v) => !v)}
+                      aria-expanded={plotOpen}
+                      className="mt-0.5 flex h-9 items-center gap-1 rounded-full pr-3 text-sm font-medium text-[#D0BCFF] outline-none focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+                    >
+                      {plotOpen ? "Ringkas" : "Selengkapnya"}
+                      <ChevronDown
+                        size={16}
+                        className={`transition-transform motion-reduce:transition-none ${plotOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                  </section>
+                )}
+
+                {episodes.length > 0 && (
+                  <section className="mt-4">
+                    <SectionTitle
+                      title={`Episode (${episodes.length})`}
+                      action={
+                        animeSlug ? (
+                          <Link
+                            to={detailPath(animeSlug)}
+                            className="flex h-10 items-center gap-0.5 rounded-full pl-3 pr-1 text-sm font-medium text-[#D0BCFF] outline-none focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+                          >
+                            Detail anime
+                            <ChevronRight size={18} />
+                          </Link>
+                        ) : undefined
+                      }
+                    />
+                    <ul className="grid grid-cols-5 gap-2 px-4 sm:grid-cols-8">
+                      {visibleEpisodes.map((e, i) => {
+                        const current = e.slug === slug;
+                        const seen = watched.includes(e.slug);
+                        return (
+                          <li key={e.slug}>
+                            <Link
+                              to={watchPath(e.slug)}
+                              replace
+                              aria-current={current ? "page" : undefined}
+                              className={`flex h-10 items-center justify-center gap-1 rounded-full text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#D0BCFF] ${
+                                current
+                                  ? "bg-[#D0BCFF] text-[#381E72]"
+                                  : seen
+                                    ? "bg-[#2B2930] text-[#938F99] hover:bg-[#35323B]"
+                                    : "border border-[#49454F] text-[#EADDFF] hover:bg-[#D0BCFF]/[0.08]"
+                              }`}
+                            >
+                              {seen && !current && <Check size={14} />}
+                              {e.number || i + 1}
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    {!forceAll && episodes.length > EPISODE_LIMIT && (
+                      <button
+                        onClick={() => setShowAll((v) => !v)}
+                        aria-expanded={showAll}
+                        className="mx-4 mt-2 flex h-10 items-center gap-1 rounded-full pr-3 text-sm font-medium text-[#D0BCFF] outline-none focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+                      >
+                        {showAll ? "Ringkas" : `Lihat semua ${episodes.length} episode`}
+                        <ChevronDown
+                          size={18}
+                          className={`transition-transform motion-reduce:transition-none ${showAll ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                    )}
+                  </section>
+                )}
+              </>
+            )}
+
+            {/* Nav prev/next */}
+            <nav aria-label="Episode" className="mt-6 flex gap-3 px-4">
+              <NavButton to={prev ? watchPath(prev.slug) : undefined}>
+                <ChevronLeft size={18} />
+                Sebelumnya
+              </NavButton>
+              <NavButton to={next ? watchPath(next.slug) : undefined} primary>
+                Berikutnya
+                <ChevronRight size={18} />
+              </NavButton>
+            </nav>
+
+            {/* Genre */}
+            {detail && detail.genres.length > 0 && (
+              <section
+                aria-label="Genre"
+                className="mt-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {detail.genres.map((g) => (
+                  <span
+                    key={g}
+                    className="flex h-8 shrink-0 items-center whitespace-nowrap rounded-full bg-[#4F378B] px-3 text-sm font-medium text-[#EADDFF]"
+                  >
+                    {g}
+                  </span>
+                ))}
+              </section>
+            )}
+
+            {/* Download */}
+            {episode.downloads.length > 0 && (
+              <section ref={downloadRef} className="mt-6 scroll-mt-20">
+                <SectionTitle title="Download" />
+                <div className="flex flex-wrap gap-2 px-4">
+                  {episode.downloads.map((d, i) => (
+                    <a
+                      key={`${d.url}-${i}`}
+                      href={d.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex h-8 items-center gap-1.5 rounded-full border border-[#49454F] px-3 text-sm font-medium text-[#D0BCFF] outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+                    >
+                      {d.host}
+                      <ExternalLink size={14} />
+                    </a>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Rilisan lainnya */}
+            {otherRecs.length > 0 && (
+              <section className="mt-6">
+                <SectionTitle
+                  title="Rilisan lainnya"
+                  action={
+                    <Link
+                      to="/"
+                      className="flex h-10 items-center gap-0.5 rounded-full pl-3 pr-1 text-sm font-medium text-[#D0BCFF] outline-none focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+                    >
+                      Lihat semua
+                      <ChevronRight size={18} />
+                    </Link>
+                  }
+                />
+                <div className="flex snap-x gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {otherRecs.slice(0, 12).map((r) => (
+                    <RecCard key={r.seriesSlug} item={r} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        )}
+      </main>
+
+      {toast && (
+        <div
+          role="status"
+          className="fixed inset-x-4 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-50 mx-auto max-w-sm rounded-xl bg-[#E6E0E9] px-4 py-3 text-center text-sm font-medium text-[#322F35] shadow-lg"
+        >
+          {toast}
+        </div>
+      )}
+    </div>
+  );
+}
