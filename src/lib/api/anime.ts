@@ -39,6 +39,19 @@ const cleanTitle = (t: string): string =>
 const toGenre = (g: any): string =>
   typeof g === "string" ? g : pickString(g, ["name", "title"]);
 
+// Sebagian ISP (mis. XL) memblokir DNS anoboy.be → gambar tak tampil di WebView.
+// Lewatkan lewat image-proxy Cloudflare (wsrv.nl) agar tampil di semua jaringan.
+const proxied = (url: string): string => {
+  if (!url) return url;
+  try {
+    const { hostname, pathname, search } = new URL(url);
+    if (!/(^|\.)anoboy\.be$/i.test(hostname)) return url;
+    return `https://wsrv.nl/?url=${encodeURIComponent(hostname + pathname + search)}`;
+  } catch {
+    return url;
+  }
+};
+
 const toItem = (a: any): AnimeItem => {
   const slug = normSlug(pickString(a, ["slug", "id"]));
   const episode = pickString(a, ["episode"]);
@@ -46,7 +59,7 @@ const toItem = (a: any): AnimeItem => {
     title: cleanTitle(pickString(a, ["title", "name"])),
     slug,
     seriesSlug: seriesSlugOf(slug),
-    poster: pickString(a, ["poster", "image", "thumbnail"]),
+    poster: proxied(pickString(a, ["poster", "image", "thumbnail"])),
     episode,
     type: pickString(a, ["type"]),
     isEpisode: /^ep(isode)?\s*\d/i.test(episode),
@@ -118,7 +131,7 @@ export const normalizeDetail = (raw: any): AnimeDetail => {
 
   const detail: AnimeDetail = {
     title: pickString(d, ["title", "name"]),
-    poster: pickString(d, ["poster", "image", "thumbnail"]),
+    poster: proxied(pickString(d, ["poster", "image", "thumbnail"])),
     synopsis: pickString(d, ["synopsis", "description"]),
     status: pickString(info, ["status"]),
     type: pickString(info, ["type"]),
