@@ -73,6 +73,7 @@ export type SessionUser = {
   banner: string | null;
   bio: string;
   verified: boolean;
+  role: string;
 };
 
 export type BackendItem = { slug: string; title: string; poster: string };
@@ -84,6 +85,7 @@ export type BackendComment = {
   author_name: string;
   author_avatar: string | null;
   author_verified: boolean;
+  author_role: string;
 };
 
 export const backend = {

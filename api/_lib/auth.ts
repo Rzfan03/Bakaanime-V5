@@ -16,6 +16,7 @@ export type User = {
   banner: string | null;
   bio: string;
   verified: boolean;
+  role: string;
 };
 
 export async function createToken(userId: string): Promise<string> {
@@ -57,7 +58,7 @@ export async function upsertUser(profile: {
     on conflict (google_sub) do update
       set email = excluded.email,
           name  = excluded.name
-    returning id, email, name, avatar, banner, bio, verified
+    returning id, email, name, avatar, banner, bio, verified, role
   `) as User[];
   return rows[0];
 }
@@ -68,22 +69,41 @@ function safeEqual(a: string, b: string): boolean {
   return ab.length === bb.length && timingSafeEqual(ab, bb);
 }
 
-// Login pakai key developer → akun verified (centang biru)
+// Login pakai key → akun terpisah per key (lihat tabel dev_keys)
 export async function loginWithKey(key: string): Promise<User> {
+  const keys = (await sql`
+    select id, label, role from dev_keys
+    where key_hash = encode(digest(${key}, 'sha256'), 'hex') and active = true
+    limit 1
+  `) as { id: string; label: string; role: string }[];
+
+  if (keys[0]) {
+    const { id, label, role } = keys[0];
+    const rows = (await sql`
+      insert into users (google_sub, email, name, verified, role)
+      values (${"key:" + id}, ${id + "@key.local"}, ${label || "Developer"}, true, ${role})
+      on conflict (google_sub) do update
+        set verified = true, role = excluded.role, name = excluded.name
+      returning id, email, name, avatar, banner, bio, verified, role
+    `) as User[];
+    return rows[0];
+  }
+
+  // fallback: key lama dari env (biar key yang sudah beredar tetap jalan)
   const expected = process.env.DEV_ACCESS_KEY ?? "";
   if (!expected || !safeEqual(key, expected)) throw new Error("Key tidak valid.");
   const rows = (await sql`
-    insert into users (google_sub, email, name, verified)
-    values ('dev', 'dev@bakaanime.local', 'Developer', true)
-    on conflict (google_sub) do update set verified = true
-    returning id, email, name, avatar, banner, bio, verified
+    insert into users (google_sub, email, name, verified, role)
+    values ('dev', 'dev@bakaanime.local', 'Developer', true, 'dev')
+    on conflict (google_sub) do update set verified = true, role = 'dev'
+    returning id, email, name, avatar, banner, bio, verified, role
   `) as User[];
   return rows[0];
 }
 
 async function userById(id: string): Promise<User | null> {
   const rows = (await sql`
-    select id, email, name, avatar, banner, bio, verified from users where id = ${id}
+    select id, email, name, avatar, banner, bio, verified, role from users where id = ${id}
   `) as User[];
   return rows[0] ?? null;
 }

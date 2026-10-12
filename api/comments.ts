@@ -12,7 +12,8 @@ export default guard(async (req, res) => {
     if (!slug) return json(res, 400, { error: "slug_required" });
     const rows = await sql`
       select c.id, c.body, c.created_at,
-             u.name as author_name, u.avatar as author_avatar, u.verified as author_verified
+             u.name as author_name, u.avatar as author_avatar,
+             u.verified as author_verified, u.role as author_role
       from comments c
       join users u on u.id = c.user_id
       where c.anime_slug = ${slug}
@@ -42,6 +43,7 @@ export default guard(async (req, res) => {
         author_name: auth.user.name,
         author_avatar: auth.user.avatar,
         author_verified: auth.user.verified,
+        author_role: auth.user.role,
       },
     });
   }

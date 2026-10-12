@@ -18,6 +18,9 @@ create table if not exists users (
 -- migration untuk DB yang sudah ada
 alter table users add column if not exists verified boolean not null default false;
 
+-- role: user | wibu | admin | dev
+alter table users add column if not exists role text not null default 'user';
+
 create table if not exists favorites (
   user_id      uuid not null references users(id) on delete cascade,
   anime_slug   text not null,
@@ -53,3 +56,15 @@ create table if not exists comments (
   created_at   timestamptz not null default now()
 );
 create index if not exists comments_slug_idx on comments (anime_slug, created_at desc);
+
+-- Key login (per-orang, akun terpisah). Tambah key lewat SQL:
+--   insert into dev_keys (key_hash, label, role)
+--   values (encode(digest('KEY_BARU', 'sha256'), 'hex'), 'Nama', 'dev');
+create table if not exists dev_keys (
+  id         uuid primary key default gen_random_uuid(),
+  key_hash   text unique not null,
+  label      text not null default '',
+  role       text not null default 'dev',
+  active     boolean not null default true,
+  created_at timestamptz not null default now()
+);

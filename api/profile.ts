@@ -25,7 +25,7 @@ export default guard(async (req, res) => {
       avatar = coalesce(${body.avatar ?? null}, avatar),
       banner = coalesce(${body.banner ?? null}, banner)
     where id = ${auth.user.id}
-    returning id, email, name, avatar, banner, bio, verified
+    returning id, email, name, avatar, banner, bio, verified, role
   `;
   return json(res, 200, { user: rows[0] });
 });
