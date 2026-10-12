@@ -1,4 +1,5 @@
 import axios from "axios";
+import { BASE } from "./backend";
 import type {
   AnimeDetail,
   AnimeItem,
@@ -40,13 +41,13 @@ const toGenre = (g: any): string =>
   typeof g === "string" ? g : pickString(g, ["name", "title"]);
 
 // Sebagian ISP (mis. XL) memblokir DNS anoboy.be → gambar tak tampil di WebView.
-// Lewatkan lewat image-proxy Cloudflare (wsrv.nl) agar tampil di semua jaringan.
+// Lewatkan lewat proxy sendiri (api/img) yang di-cache di edge Vercel.
 const proxied = (url: string): string => {
   if (!url) return url;
   try {
     const { hostname, pathname, search } = new URL(url);
     if (!/(^|\.)anoboy\.be$/i.test(hostname)) return url;
-    return `https://wsrv.nl/?url=${encodeURIComponent(hostname + pathname + search)}`;
+    return `${BASE}/img?u=${encodeURIComponent(hostname + pathname + search)}`;
   } catch {
     return url;
   }

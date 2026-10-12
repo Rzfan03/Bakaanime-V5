@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_URL || "/api";
+export const BASE = import.meta.env.VITE_API_URL || "/api";
 const TOKEN_KEY = "bakaanime_token";
 
 export function getToken(): string | null {

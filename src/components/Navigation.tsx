@@ -1,5 +1,6 @@
 import { Home, Search, History, User } from "lucide-react"
 import { NavLink } from "react-router"
+import { useAuth } from "../lib/auth"
 
 const tabs = [
   { to: '/', label: 'Beranda', icon: Home },
@@ -9,6 +10,9 @@ const tabs = [
 ]
 
 const Navigation = () => {
+  const { user } = useAuth()
+  const avatar = user?.avatar ?? null
+
   return (
     <nav className="pointer-events-none z-50 fixed inset-x-0 bottom-0 flex justify-center px-4 pb-[calc(env(safe-area-inset-bottom)+12px)]">
       <ul className="pointer-events-auto flex items-center gap-1 rounded-full bg-[#2B2930] p-2 shadow-lg shadow-black/40">
@@ -27,10 +31,20 @@ const Navigation = () => {
             >
               {({ isActive }) => (
                 <>
-                  <Icon
-                    size={24}
-                    className={isActive ? 'text-[#381E72]' : 'text-[#CAC4D0]'}
-                  />
+                  {to === '/profile' && avatar ? (
+                    <img
+                      src={avatar}
+                      alt=""
+                      className={`h-6 w-6 shrink-0 rounded-full object-cover ring-2 ${
+                        isActive ? 'ring-[#381E72]' : 'ring-[#D0BCFF]/50'
+                      }`}
+                    />
+                  ) : (
+                    <Icon
+                      size={24}
+                      className={isActive ? 'text-[#381E72]' : 'text-[#CAC4D0]'}
+                    />
+                  )}
                   <span
                     className={`overflow-hidden whitespace-nowrap text-sm font-semibold text-[#381E72] transition-all duration-300 ${
                       isActive ? 'max-w-24 pl-2 opacity-100' : 'max-w-0 pl-0 opacity-0'
