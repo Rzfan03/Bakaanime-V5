@@ -40,7 +40,7 @@ function safeEqual(a: string, b: string): boolean {
   return ab.length === bb.length && timingSafeEqual(ab, bb);
 }
 
-// Login pakai key → akun terpisah per key (lihat tabel dev_keys)
+// Key login creates a separate account per key (see dev_keys table).
 export async function loginWithKey(key: string): Promise<User> {
   const keys = (await sql`
     select id, label, role from dev_keys
@@ -60,7 +60,7 @@ export async function loginWithKey(key: string): Promise<User> {
     return rows[0];
   }
 
-  // fallback: key lama dari env (biar key yang sudah beredar tetap jalan)
+  // Fallback for legacy env key so already-distributed keys keep working.
   const expected = process.env.DEV_ACCESS_KEY ?? "";
   if (!expected || !safeEqual(key, expected)) throw new Error("Key tidak valid.");
   const rows = (await sql`

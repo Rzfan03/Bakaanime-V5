@@ -153,7 +153,7 @@ export default function Watch() {
   const [toast, setToast] = useState("");
   const downloadRef = useRef<HTMLElement | null>(null);
 
-  /* ── Fullscreen: sembunyikan status bar + landscape; keluar → balik portrait ── */
+  /* Fullscreen: hide the status bar and switch to landscape; on exit, restore portrait */
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
@@ -168,7 +168,7 @@ export default function Watch() {
           await StatusBar.show();
         }
       } catch {
-        /* plugin belum ready / web */
+        /* plugin not ready / web */
       }
     };
 
@@ -178,7 +178,7 @@ export default function Watch() {
     return () => {
       document.removeEventListener("fullscreenchange", onFsChange);
       document.removeEventListener("webkitfullscreenchange", onFsChange as EventListener);
-      // pastikan balik normal saat keluar halaman Watch
+      // Ensure normal state when leaving the Watch page
       void ScreenOrientation.lock({ orientation: "portrait" }).catch(() => {});
       void StatusBar.show().catch(() => {});
     };
@@ -332,7 +332,6 @@ export default function Watch() {
       </header>
 
       <main className="mx-auto max-w-3xl">
-        {/* Player */}
         <div className="px-4">
           <div className="aspect-video w-full overflow-hidden rounded-2xl bg-black">
             {loading && (

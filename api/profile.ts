@@ -20,7 +20,6 @@ export default guard(async (req, res) => {
   if (body.bio !== undefined && body.bio.length > 160) {
     return json(res, 400, { error: "bio_too_long" });
   }
-  // font hanya bisa diubah admin/dev
   if (body.font !== undefined) {
     if (!PRIVILEGED_ROLES.includes(auth.user.role)) {
       return json(res, 403, { error: "font_not_allowed" });

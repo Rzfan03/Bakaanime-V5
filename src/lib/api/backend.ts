@@ -36,7 +36,7 @@ async function request<T>(
     clearTimeout(timer);
   }
 
-  // jangan asumsikan JSON: Vite dev / SPA fallback bisa balikin JS atau HTML
+  // don't assume JSON: Vite dev / SPA fallback may return JS or HTML
   const raw = await res.text();
   let data: unknown = null;
   if (raw) {
@@ -90,7 +90,7 @@ export type BackendComment = {
   author_font: string;
 };
 
-// komentar milik user sendiri — include anime_slug untuk ditampilkan di profil
+// the user's own comments — include anime_slug so they can be shown on the profile
 export type UserComment = BackendComment & { anime_slug: string };
 
 export const backend = {

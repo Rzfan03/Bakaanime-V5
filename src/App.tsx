@@ -43,7 +43,7 @@ export default function App() {
   const [splashDone, setSplashDone] = useState(false);
   const navigate = useNavigate();
 
-  // Tombol back Android: kembali ke halaman sebelumnya, keluar hanya di root.
+  // Android back button: go back a page, only exit at the root.
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     const handle = CapacitorApp.addListener("backButton", ({ canGoBack }) => {

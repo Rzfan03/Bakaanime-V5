@@ -4,8 +4,8 @@ const ORIGINS = [
   "http://localhost:3000",
   "http://localhost:5173",
   "http://localhost:4173",
-  "https://localhost", // Capacitor android webview
-  "https://app.bakaanime-v5.vercel.app", // Capacitor android webview (produksi)
+  "https://localhost", // Capacitor Android webview
+  "https://app.bakaanime-v5.vercel.app", // Capacitor Android webview (production)
 ];
 
 export function applyCors(req: VercelRequest, res: VercelResponse) {
@@ -42,7 +42,7 @@ export function preflight(req: VercelRequest, res: VercelResponse): boolean {
   return false;
 }
 
-// bungkus handler: error tak terduga → JSON 500, jangan crash proses dev
+// Handler wrapper: unexpected errors become a JSON 500 instead of crashing the dev process.
 export function guard(
   fn: (req: VercelRequest, res: VercelResponse) => Promise<unknown>,
 ) {

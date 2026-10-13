@@ -2,8 +2,8 @@ import type { SetActive, SignInResource, SignUpResource } from "@clerk/shared/ty
 import { App } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 
-// Harus sama persis dengan intent-filter di AndroidManifest.xml dan yang
-// di-allowlist di Clerk Dashboard -> Native applications -> mobile SSO redirect.
+// Must match exactly the intent-filter in AndroidManifest.xml and the one
+// allowlisted in Clerk Dashboard -> Native applications -> mobile SSO redirect.
 export const NATIVE_REDIRECT_URL = "com.bakaanime.app://sso-callback";
 
 type StartArgs = {
@@ -13,9 +13,9 @@ type StartArgs = {
 };
 
 /**
- * OAuth lewat system browser + deep link (pola native Clerk).
- * Buka provider di @capacitor/browser, tunggu appUrlOpen, lalu selesaikan
- * pakai rotating_token_nonce (tanpa cookie). Return sessionId / null (batal).
+ * OAuth via the system browser + deep link (native Clerk pattern).
+ * Open the provider in @capacitor/browser, wait for appUrlOpen, then finish
+ * using rotating_token_nonce (no cookies). Returns sessionId / null (cancelled).
  */
 export async function startNativeSSO({
   signIn,

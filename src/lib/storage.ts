@@ -4,7 +4,6 @@ export type UserProfile = { name: string; bio: string; avatar: string; banner: s
 
 type WatchedMap = Record<string, string[]>;
 
-/* ── Library ─────────────────────────────────────────────────── */
 export function readLibrary(): LibraryItem[] {
   try {
     const raw = JSON.parse(localStorage.getItem("library") ?? "[]");
@@ -22,7 +21,6 @@ export function writeLibrary(items: LibraryItem[]) {
   }
 }
 
-/* ── Watched ─────────────────────────────────────────────────── */
 function readWatchedMap(): WatchedMap {
   try {
     const raw = JSON.parse(localStorage.getItem("watched") ?? "{}");
@@ -51,7 +49,6 @@ export function markWatched(animeSlug: string, episodeSlug: string): string[] {
   return next;
 }
 
-/* ── Favorites (tampil di Library dan tab Favorit di profil) ── */
 export function readFavorites(): FavoriteItem[] {
   try {
     const raw = JSON.parse(localStorage.getItem("favorites") ?? "[]");
@@ -83,7 +80,6 @@ export function isFavorite(slug: string): boolean {
   return readFavorites().some((f) => f.slug === slug);
 }
 
-/* ── User profile ────────────────────────────────────────────── */
 const DEFAULT_PROFILE: UserProfile = {
   name: "Pengguna BakaAnime",
   bio: "",

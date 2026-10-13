@@ -15,14 +15,14 @@ create table if not exists users (
   created_at   timestamptz not null default now()
 );
 
--- migration untuk DB yang sudah ada
+-- migration for existing databases
 alter table users add column if not exists verified boolean not null default false;
 
 -- role: user | wibu | admin | dev
 alter table users add column if not exists role text not null default 'user';
 
--- font username kustom (hanya admin/dev yang bisa ubah)
--- nilai: 'default' | 'mono' | 'serif' | 'cursive' | 'pixel' | 'rounded'
+-- custom username font (only admin/dev may change it)
+-- values: 'default' | 'mono' | 'serif' | 'cursive' | 'pixel' | 'rounded'
 alter table users add column if not exists font text not null default 'default';
 
 create table if not exists favorites (
@@ -61,9 +61,9 @@ create table if not exists comments (
 );
 create index if not exists comments_slug_idx on comments (anime_slug, created_at desc);
 
--- Key login (per-orang, akun terpisah). Tambah key lewat SQL:
+-- Login keys (one account per key). Add a key with:
 --   insert into dev_keys (key_hash, label, role)
---   values (encode(digest('KEY_BARU', 'sha256'), 'hex'), 'Nama', 'dev');
+--   values (encode(digest('NEW_KEY', 'sha256'), 'hex'), 'Name', 'dev');
 create table if not exists dev_keys (
   id         uuid primary key default gen_random_uuid(),
   key_hash   text unique not null,

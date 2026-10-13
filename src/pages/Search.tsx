@@ -8,14 +8,12 @@ import Poster from "../components/Poster";
 
 const detailPath = (a: AnimeItem) => `/detail/${encodeURIComponent(a.seriesSlug)}`;
 
-/* ── Result card ─────────────────────────────────────────────── */
 function ResultCard({ item }: { item: AnimeItem }) {
   return (
     <Link
       to={detailPath(item)}
       className="group flex items-center gap-4 p-3 outline-none transition-colors active:bg-[#D0BCFF]/[0.10] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D0BCFF]"
     >
-      {/* poster */}
       <div className="relative aspect-[2/3] w-16 shrink-0 overflow-hidden rounded-xl bg-[color:var(--m3-surface-high)] shadow-md">
         <Poster
           src={item.poster}
@@ -25,7 +23,6 @@ function ResultCard({ item }: { item: AnimeItem }) {
         />
       </div>
 
-      {/* info */}
       <div className="min-w-0 flex-1 py-0.5">
         <p className="line-clamp-2 text-[15px] font-semibold leading-snug text-[#E6E0E9]">
           {item.title}
@@ -44,7 +41,6 @@ function ResultCard({ item }: { item: AnimeItem }) {
         </div>
       </div>
 
-      {/* chevron */}
       <div className="shrink-0 text-[#49454F] transition-colors group-hover:text-[#D0BCFF]">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 18l6-6-6-6" />
@@ -54,7 +50,6 @@ function ResultCard({ item }: { item: AnimeItem }) {
   );
 }
 
-/* ── Skeleton ─────────────────────────────────────────────────── */
 function SkeletonCard() {
   return (
     <div className="flex items-center gap-4 p-3" aria-hidden="true">
@@ -68,12 +63,10 @@ function SkeletonCard() {
   );
 }
 
-/* ── Divider ──────────────────────────────────────────────────── */
 function Divider() {
   return <div className="mx-3 h-px bg-[color:var(--m3-surface-high)]" aria-hidden="true" />;
 }
 
-/* ── Main page ────────────────────────────────────────────────── */
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialQuery = searchParams.get("q") ?? "";
@@ -149,11 +142,9 @@ export default function Search() {
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--m3-surface)] text-[#E6E0E9]">
 
-      {/* ── Top bar ── */}
       <header className="sticky top-0 z-40 bg-[color:var(--m3-surface)] pt-[env(safe-area-inset-top)]">
         <div className="flex h-16 items-center gap-2 px-2">
 
-          {/* back */}
           <Link
             to="/"
             aria-label="Kembali"
@@ -162,7 +153,6 @@ export default function Search() {
             <ArrowLeft size={22} />
           </Link>
 
-          {/* search field */}
           <div className="relative flex flex-1 items-center">
             <SearchIcon
               size={18}
@@ -194,7 +184,7 @@ export default function Search() {
 
         </div>
 
-        {/* thin progress bar saat loading */}
+        {/* Thin progress bar while loading */}
         <div
           className={`h-[2px] w-full bg-gradient-to-r from-[#4F378B] via-[#D0BCFF] to-[#4F378B] transition-opacity duration-300 ${
             loading ? "opacity-100" : "opacity-0"
@@ -203,10 +193,8 @@ export default function Search() {
         />
       </header>
 
-      {/* ── Content ── */}
       <main className="flex-1 pb-[env(safe-area-inset-bottom)] pb-28">
 
-        {/* idle */}
         {!query && !loading && (
           <div className="flex flex-col items-center gap-4 px-6 pt-16 text-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-[28px] bg-[color:var(--m3-surface-high)]">
@@ -219,7 +207,6 @@ export default function Search() {
               </p>
             </div>
 
-            {/* quick genre chips */}
             <div className="mt-2 flex flex-wrap justify-center gap-2">
               {["Action", "Romance", "Comedy", "Fantasy", "Horror", "Slice of Life"].map((g) => (
                 <button
@@ -234,7 +221,6 @@ export default function Search() {
           </div>
         )}
 
-        {/* loading skeleton */}
         {loading && (
           <div className="mt-1 px-1">
             <div className="overflow-hidden rounded-2xl bg-[color:var(--m3-surface-low)]">
@@ -248,14 +234,12 @@ export default function Search() {
           </div>
         )}
 
-        {/* error */}
         {!loading && error && (
           <div className="mx-4 mt-6 rounded-2xl bg-[color:var(--m3-surface-high)] px-4 py-5">
             <p className="text-[13px] text-[#CAC4D0]">{error}</p>
           </div>
         )}
 
-        {/* empty */}
         {!loading && empty && (
           <div className="flex flex-col items-center gap-3 px-6 pt-16 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-[20px] bg-[color:var(--m3-surface-high)]">
@@ -270,15 +254,12 @@ export default function Search() {
           </div>
         )}
 
-        {/* results */}
         {!loading && results.length > 0 && (
           <section aria-label={`Hasil "${query}"`}>
-            {/* result count label */}
             <p className="px-4 pb-2 pt-3 text-[12px] font-medium uppercase tracking-wide text-[#938F99]">
               {results.length} hasil
             </p>
 
-            {/* result list card */}
             <div className="mx-3 overflow-hidden rounded-2xl bg-[color:var(--m3-surface-low)]">
               {results.map((item, i) => (
                 <div key={item.seriesSlug}>

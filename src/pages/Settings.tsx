@@ -6,21 +6,10 @@ import { useAuth } from "../lib/auth";
 import { useSettings } from "../lib/settings";
 import type { AppFontId, TextSizeId, ThemeId } from "../lib/settings";
 
-/* ─────────────────────────────────────────────
-   Material 3 dark — pola dasar
-   surface (var)            halaman
-   surface-container (var)  grup list
-   surface-container-high   dialog
-   on-surface #E6E0E9       on-surface-variant #CAC4D0
-   outline #938F99          outline-variant #49454F
-   primary #D0BCFF          on-primary #381E72
-   ───────────────────────────────────────────── */
-
 const ITEM =
   "flex w-full min-h-[72px] items-center gap-4 bg-[color:var(--m3-surface-container)] px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D0BCFF]";
 const ITEM_PRESS = "active:bg-[color:var(--m3-surface-high)]";
 
-/* Label seksi: label-large, warna primary */
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
     <h2 className="px-4 pb-2 pt-6 text-[14px] font-medium leading-5 tracking-[0.1px] text-[#D0BCFF]">
@@ -29,7 +18,6 @@ function SectionLabel({ children }: { children: ReactNode }) {
   );
 }
 
-/* Grup list: sudut luar 28, antar item dipisah celah 2px */
 function Group({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5 overflow-hidden rounded-[28px] bg-[color:var(--m3-surface)]">
@@ -63,7 +51,6 @@ function Texts({
   );
 }
 
-/* Baris dengan kontrol di bawah teks (segmented) */
 function ControlItem({
   title,
   desc,
@@ -82,7 +69,6 @@ function ControlItem({
   );
 }
 
-/* Segmented button M3: pilihan aktif sewarna toggle ON (primary) */
 function Segmented<T extends string>({
   label,
   value,
@@ -123,7 +109,6 @@ function Segmented<T extends string>({
   );
 }
 
-/* List item dengan switch M3: seluruh baris bisa diketuk */
 function SwitchItem({
   title,
   desc,
@@ -160,7 +145,6 @@ function SwitchItem({
   );
 }
 
-/* Dialog M3 */
 function Dialog({
   title,
   body,
@@ -217,7 +201,6 @@ function Dialog({
   );
 }
 
-/* Snackbar M3 (inverse surface) */
 function Snackbar({ message }: { message: string }) {
   return (
     <div className="pointer-events-none fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+96px)] z-[70] mx-auto max-w-md">
@@ -297,7 +280,7 @@ export default function Settings() {
     try {
       localStorage.removeItem("watched");
     } catch {
-      /* abaikan */
+      /* ignore */
     }
     setDialog(null);
     setSnack("Riwayat tontonan dihapus");
@@ -307,7 +290,6 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-[color:var(--m3-surface)] text-[#E6E0E9]">
-      {/* top app bar */}
       <header className="sticky top-0 z-40 bg-[color:var(--m3-surface)] pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-16 max-w-2xl items-center px-1">
           <button
@@ -324,7 +306,6 @@ export default function Settings() {
       <main className="mx-auto max-w-2xl px-4 pb-36">
         <h1 className="px-4 pb-4 text-[28px] font-normal leading-9 text-[#E6E0E9]">Pengaturan</h1>
 
-        {/* profil */}
         <Group>
           <Link to="/profile" className={`${ITEM} ${ITEM_PRESS} min-h-[88px]`}>
             <ProfileAvatar name={user?.name ?? ""} src={user?.avatar ?? null} />

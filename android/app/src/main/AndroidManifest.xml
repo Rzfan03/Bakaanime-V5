@@ -23,8 +23,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Deep link callback OAuth (Clerk native SSO). Skema harus sama
-                 dengan NATIVE_REDIRECT_URL di src/lib/clerk/sso.ts. -->
+            <!-- OAuth callback deep link (Clerk native SSO). The scheme must match
+                 NATIVE_REDIRECT_URL in src/lib/clerk/sso.ts. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

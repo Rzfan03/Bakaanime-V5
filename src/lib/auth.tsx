@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Tukar sesi Clerk → JWT kita
+  // Exchange the Clerk session for our JWT
   const exchange = useCallback(async () => {
     const token = await getClerkToken();
     if (!token) throw new Error("no_clerk_token");
@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!clerkLoaded) return;
     let active = true;
     (async () => {
-      if (isSignedIn && !clerkUser) return; // tunggu profil Clerk
+      if (isSignedIn && !clerkUser) return; // wait for the Clerk profile
       try {
         if (isSignedIn && !getToken() && !exchangedRef.current) {
           exchangedRef.current = true;
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch {
         exchangedRef.current = false;
-        /* biarkan halaman login menangani */
+        /* let the login page handle it */
       }
       if (active) setLoading(false);
     })();
@@ -76,8 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [clerkLoaded, isSignedIn, clerkUser, exchange, refresh]);
 
-  // Jaring pengaman: kalau Clerk tak kunjung siap (mis. FAPI tak terjangkau di
-  // APK), jangan gantung di splash — lanjut pakai token sendiri.
+  // Safety net: if Clerk never becomes ready (e.g. FAPI unreachable in the
+  // APK), don't hang on the splash — continue with our own token.
   useEffect(() => {
     if (clerkLoaded) return;
     const t = setTimeout(() => {

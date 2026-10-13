@@ -18,6 +18,6 @@ async function withRetry<T>(run: () => Promise<T>): Promise<T> {
   throw lastErr;
 }
 
-// ponytail: retry 3x — koneksi Neon kadang timeout sekejap (dual-stack flaky)
+// ponytail: retry 3x — Neon connections occasionally time out briefly (flaky dual-stack).
 export const sql = (strings: TemplateStringsArray, ...values: unknown[]) =>
   withRetry(() => raw(strings, ...values));

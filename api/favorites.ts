@@ -13,7 +13,7 @@ export default guard(async (req, res) => {
   if ("error" in auth) return json(res, 401, { error: auth.error });
   const uid = auth.user.id;
 
-  // terbaru dulu (position terbesar = paling baru ditambahkan)
+  // Newest first (largest position = most recently added).
   if (req.method === "GET") {
     const rows = await sql`
       select anime_slug as slug, title, poster
@@ -22,7 +22,7 @@ export default guard(async (req, res) => {
     return json(res, 200, { items: rows });
   }
 
-  // tambah satu favorit (aman dipanggil berulang)
+  // Add one favorite (idempotent).
   if (req.method === "POST") {
     const { slug, title, poster } = readBody<Item>(req);
     if (!slug || !title || !poster) return json(res, 400, { error: "missing_fields" });
@@ -44,7 +44,6 @@ export default guard(async (req, res) => {
     return json(res, 200, { ok: true });
   }
 
-  // hapus satu favorit
   if (req.method === "DELETE") {
     const slug = typeof req.query.slug === "string" ? req.query.slug : "";
     if (!slug) return json(res, 400, { error: "slug_required" });
@@ -52,7 +51,7 @@ export default guard(async (req, res) => {
     return json(res, 200, { ok: true });
   }
 
-  // ganti seluruh daftar (urutan = urutan tampil, terbaru di atas)
+  // Replace the whole list (array order = display order, newest on top).
   if (req.method === "PUT") {
     const { items } = readBody<{ items?: Item[] }>(req);
     if (!Array.isArray(items)) return json(res, 400, { error: "items_required" });

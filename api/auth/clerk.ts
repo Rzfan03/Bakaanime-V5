@@ -6,8 +6,8 @@ import { guard, json, preflight, readBody } from "../_lib/http.js";
 
 type Body = { token?: string; name?: string; email?: string; avatar?: string | null };
 
-// Tukar sesi Clerk → JWT kita. Verifikasi tanda tangan token pakai JWKS yang
-// diambil dari Backend API Clerk (secret key) — tak bergantung host pk/domain proxy.
+// Exchange a Clerk session for our JWT. Token signature verification uses JWKS
+// fetched via the Clerk Backend API (secret key), independent of the pk host / proxy domain.
 export default guard(async (req: VercelRequest, res: VercelResponse) => {
   if (preflight(req, res)) return;
   if (req.method !== "POST") return json(res, 405, { error: "method_not_allowed" });
@@ -20,7 +20,7 @@ export default guard(async (req: VercelRequest, res: VercelResponse) => {
 
   let sub = "";
   try {
-    // ponytail: authorizedParties belum diisi — tambahkan setelah origin web/APK pasti.
+    // ponytail: authorizedParties not set yet — add once web/APK origins are final.
     const payload = await verifyToken(token, { secretKey });
     sub = (payload?.sub ?? "") as string;
   } catch (e) {

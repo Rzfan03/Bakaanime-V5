@@ -106,11 +106,11 @@ export default function Library() {
 
   const handleRemove = async (slug: string) => {
     const before = library;
-    setLibrary((prev) => prev.filter((l) => l.slug !== slug)); // optimistic
+    setLibrary((prev) => prev.filter((l) => l.slug !== slug));
     try {
-      await removeFavorite(slug); // hapus dari library sekaligus dari favorit di profil
+      await removeFavorite(slug);
     } catch {
-      setLibrary(before); // rollback
+      setLibrary(before);
     }
   };
 

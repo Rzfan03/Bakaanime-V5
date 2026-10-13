@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Versi naik otomatis tiap build: 1.0.0, 1.0.1, ... (patch = nomor run).
+      # Version bumps automatically per build: 1.0.1, 1.0.2, ... (patch = run number).
       - name: Set version from build number
         run: |
           sed -i -E "s/versionCode [0-9]+/versionCode ${{ github.run_number }}/" android/app/build.gradle
@@ -74,8 +74,8 @@ jobs:
           path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
-      # Rilis bergulir: satu release "latest" yang asetnya selalu ditimpa, biar
-      # halaman /download.html punya URL unduh tetap.
+      # Rolling release: a single "latest" release whose asset is overwritten
+      # every build so /download.html keeps a permanent download URL.
       - name: Publish rolling release
         env:
           GH_TOKEN: ${{ github.token }}

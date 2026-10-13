@@ -13,9 +13,9 @@ const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as stri
 const isNative = Capacitor.isNativePlatform()
 const hostname = typeof window !== "undefined" ? window.location.hostname : ""
 
-// Web: pakai proxy /__clerk di produksi (*.vercel.app) dan di `vercel dev`
-// (localhost:3000 menyajikan rewrite + fungsi api yang sama). pk_live wajib
-// lewat proxy karena host FAPI-nya tak punya DNS. Native: lihat lib/clerk/native.tsx.
+// Web: use the /__clerk proxy in production (*.vercel.app) and in `vercel dev`
+// (localhost:3000 serves the same rewrite + api functions). pk_live must go
+// through the proxy because its FAPI host has no DNS. Native: see lib/clerk/native.tsx.
 const isLocalHost = hostname === "localhost" || hostname === "127.0.0.1"
 const CLERK_PROXY_URL = isNative
   ? undefined
@@ -23,20 +23,19 @@ const CLERK_PROXY_URL = isNative
     ? "/__clerk"
     : undefined
 
-// Provider native memuat @clerk/clerk-js (bearer, tanpa cookie); di-lazy supaya
-// tidak ikut ke bundle web.
+// The native provider loads @clerk/clerk-js (bearer, no cookies); lazy so it
+// stays out of the web bundle.
 const NativeClerkProvider = lazy(() =>
   import("./lib/clerk/native").then((m) => ({ default: m.NativeClerkProvider })),
 )
 
-// muat font Pixelify Sans
 const pixelFont = document.createElement('link')
 pixelFont.rel = 'stylesheet'
 pixelFont.href =
   'https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap'
 document.head.appendChild(pixelFont)
 
-// fallback: gambar gagal dimuat → placeholder, biar tak ada kotak kosong
+// fallback: image fails to load -> placeholder, so there are no empty boxes
 const PLACEHOLDER =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='450'%3E%3Crect width='100%25' height='100%25' fill='%232B2930'/%3E%3C/svg%3E"
 window.addEventListener(
@@ -51,7 +50,7 @@ window.addEventListener(
   true,
 )
 
-initSettings() // terapkan tema/ukuran teks/font sebelum render
+initSettings() // apply theme/text size/font before render
 
 function Shell() {
   return (

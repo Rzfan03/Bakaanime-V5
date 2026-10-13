@@ -137,7 +137,7 @@ export default function Detail() {
   const [scrolled, setScrolled] = useState(false);
   const [toast, setToast] = useState("");
 
-  // status favorit dari backend (kalau login) atau localStorage (fallback)
+  // Favorite status from backend (when logged in) or localStorage (fallback)
   useEffect(() => {
     if (user) {
       void backend.getFavorites().then((res) => {
@@ -193,18 +193,18 @@ export default function Detail() {
     return () => clearTimeout(t);
   }, [toast]);
 
-  // favorit = masuk ke Library DAN tab Favorit di profil sekaligus
+  // Favoriting also adds to the Library and the profile Favorites tab
   const toggleFav = async () => {
     if (!detail || favBusy) return;
     setFavBusy(true);
     const wasIn = isFav;
-    setIsFav(!wasIn); // optimistic
+    setIsFav(!wasIn);
     try {
       if (wasIn) await removeFavorite(seriesSlug);
       else await addFavorite({ slug: seriesSlug, title: detail.title, poster: detail.poster });
       setToast(wasIn ? "Dihapus dari favorit" : "Ditambahkan ke favorit dan library");
     } catch {
-      setIsFav(wasIn); // rollback
+      setIsFav(wasIn);
       setToast("Telah Terjadi Sebuah Kesalahan.");
     } finally {
       setFavBusy(false);

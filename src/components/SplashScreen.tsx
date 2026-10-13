@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { SplashScreen as NativeSplash } from '@capacitor/splash-screen'
 
-const FADE_MS = 500 // lama fade-out menuju app
-const FALLBACK_MS = 6000 // jaga-jaga kalau video gagal diputar
+const FADE_MS = 500
+const FALLBACK_MS = 6000
 
 type Props = { onDone: () => void }
 
@@ -32,17 +32,17 @@ export default function SplashScreen({ onDone }: Props) {
   }
 
   function handleVideoError() {
-    // video tak bisa diputar → tampilkan poster, jangan langsung tutup splash
+    // Video can't play: show the poster, don't close the splash immediately.
     setVideoFailed(true)
     hideNative()
     setTimeout(finish, 1200)
   }
 
   useEffect(() => {
-    // splash native hanya menutupi jeda awal; setelah ini poster/video tampil
+    // Native splash only covers the initial gap; the poster/video shows after this.
     const hideTimer = setTimeout(hideNative, 1000)
 
-    // pengaman: tetap lanjut ke app walau video bermasalah
+    // Safety net: proceed to the app even if the video fails.
     const fallbackTimer = setTimeout(finish, reduceMotion ? 1500 : FALLBACK_MS)
 
     const v = videoRef.current
@@ -60,7 +60,7 @@ export default function SplashScreen({ onDone }: Props) {
 
   return (
     <div
-      onClick={finish} // ketuk di mana saja untuk melewati
+      onClick={finish} // tap anywhere to skip
       className={`fixed inset-0 z-[100] overflow-hidden bg-m3-surface transition-opacity ease-out ${
         leaving ? 'opacity-0' : 'opacity-100'
       }`}
@@ -94,7 +94,7 @@ export default function SplashScreen({ onDone }: Props) {
         />
       )}
 
-      {/* gradasi bawah supaya teks terbaca */}
+      {/* bottom gradient so the text stays legible */}
       <div className="absolute inset-0 bg-gradient-to-t from-m3-surface via-m3-surface/30 to-transparent" />
 
       <div className="absolute inset-x-0 bottom-0 flex flex-col items-center px-10 pb-[calc(env(safe-area-inset-bottom)+48px)]">
@@ -107,7 +107,6 @@ export default function SplashScreen({ onDone }: Props) {
           </span>
         </div>
 
-        {/* progress linear gaya Material 3 */}
         <div
           role="progressbar"
           aria-label="Memuat"

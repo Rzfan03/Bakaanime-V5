@@ -21,8 +21,8 @@ const isAllowed = (url: URL): boolean => {
 const UA =
   "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36";
 
-// Proxy gambar: sebagian ISP memblokir host sumber, jadi ambil dari server (region sin1)
-// lalu cache di edge Vercel. Jangan buka jadi open proxy — host wajib allowlist.
+// Image proxy: some ISPs block the source hosts, so fetch server-side (sin1 region)
+// and cache at the Vercel edge. Must not become an open proxy — hosts require an allowlist.
 export default guard(async (req: VercelRequest, res: VercelResponse) => {
   if (req.method !== "GET" && req.method !== "HEAD") {
     return json(res, 405, { error: "method_not_allowed" });

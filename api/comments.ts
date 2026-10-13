@@ -8,7 +8,6 @@ export default guard(async (req, res) => {
   if (preflight(req, res)) return;
 
   if (req.method === "GET") {
-    // GET /comments?user=me  → komentar milik user yang login
     if (req.query.user === "me") {
       const auth = await requireUser(req);
       if ("error" in auth) return json(res, 401, { error: auth.error });
@@ -26,7 +25,6 @@ export default guard(async (req, res) => {
       return json(res, 200, { comments: rows });
     }
 
-    // GET /comments?slug=...  → komentar untuk satu anime
     const slug = typeof req.query.slug === "string" ? req.query.slug : "";
     if (!slug) return json(res, 400, { error: "slug_required" });
     const rows = await sql`

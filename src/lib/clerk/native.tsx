@@ -4,13 +4,13 @@ import { Clerk } from "@clerk/clerk-js";
 import { InternalClerkProvider } from "@clerk/react/internal";
 import { Preferences } from "@capacitor/preferences";
 
-// Clerk tak bisa CNAME ke *.vercel.app, jadi FAPI di-proxy lewat domain web
-// (lihat api/clerk-proxy.ts). Host FAPI dari pk_live tak resolve → native wajib
-// menembak proxy absolut ini.
+// Clerk can't CNAME to *.vercel.app, so FAPI is proxied through the web domain
+// (see api/clerk-proxy.ts). The FAPI host from pk_live doesn't resolve → native
+// must hit this absolute proxy.
 export const NATIVE_PROXY_URL = "https://bakaanime-v5.vercel.app/__clerk";
 
-// __clerk_client_jwt mengidentifikasi "client" Clerk lintas request tanpa cookie
-// (cookie diblokir: vercel.app public-suffix + CapacitorHttp tak simpan cookie).
+// __clerk_client_jwt identifies the Clerk "client" across requests without cookies
+// (cookies are blocked: vercel.app public-suffix + CapacitorHttp doesn't persist cookies).
 const CLIENT_JWT_KEY = "__clerk_client_jwt";
 
 const PK = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
@@ -33,12 +33,12 @@ let cached: { key: string; clerk: Clerk } | null = null;
 
 function getNativeClerk(publishableKey: string): Clerk {
   if (cached && cached.key === publishableKey) return cached.clerk;
-  // pk_test bicara langsung ke clerk.accounts.dev (host resolve); pk_live wajib
-  // lewat proxy karena host FAPI-nya tak punya DNS.
+  // pk_test talks directly to clerk.accounts.dev (host resolves); pk_live must go
+  // through the proxy because its FAPI host has no DNS.
   const isProd = publishableKey.startsWith("pk_live_");
   const clerk = new Clerk(publishableKey, isProd ? { proxyUrl: NATIVE_PROXY_URL } : undefined);
 
-  // Mode native Clerk: `?_is_native=1` + Authorization bearer menggantikan cookie.
+  // Native Clerk mode: `?_is_native=1` + Authorization bearer replaces cookies.
   clerk.__internal_onBeforeRequest(async (req: FapiReq) => {
     req.credentials = "omit";
     req.url?.searchParams.append("_is_native", "1");
@@ -57,8 +57,8 @@ function getNativeClerk(publishableKey: string): Clerk {
   return clerk;
 }
 
-// InternalClerkProvider terima instance Clerk yang sudah jadi via prop `Clerk`.
-// Typing publiknya ketat → cast longgar (pola yang sama dipakai @clerk/expo).
+// InternalClerkProvider takes a ready-made Clerk instance via the `Clerk` prop.
+// Its public typing is strict → cast loosely (same pattern used by @clerk/expo).
 const Inner = InternalClerkProvider as unknown as ComponentType<
   Record<string, unknown> & { children?: ReactNode }
 >;
@@ -69,7 +69,7 @@ export function NativeClerkProvider({ children }: { children: ReactNode }) {
     <Inner
       Clerk={clerk}
       publishableKey={PK}
-      // Matikan alur cookie/dev-browser; pakai bearer + x-mobile.
+      // Disable the cookie/dev-browser flow; use bearer + x-mobile.
       standardBrowser={false}
       experimental={{ runtimeEnvironment: "headless" }}
     >

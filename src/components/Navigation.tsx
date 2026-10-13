@@ -14,7 +14,6 @@ const Navigation = () => {
   const location = useLocation()
   const avatar = user?.avatar ?? null
 
-  // Sembunyikan nav di halaman Profile dengan animasi smooth (Material motion)
   const isProfile = location.pathname === "/profile"
 
   return (

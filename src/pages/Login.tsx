@@ -10,7 +10,7 @@ import { startNativeSSO } from "../lib/clerk/sso";
 const row =
   "flex h-14 w-full items-center bg-[color:var(--m3-surface-low)] text-[15px] font-medium text-[#E6E0E9] outline-none transition-colors hover:bg-[color:var(--m3-surface-high)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D0BCFF]";
 
-// tampilkan pesan asli Clerk (sementara, buat debug di APK tanpa console)
+// Show the real Clerk message (temporary, to debug the APK without console access)
 function errText(e: unknown): string {
   const a = e as { errors?: { code?: string; message?: string }[]; message?: string };
   const f = a?.errors?.[0];
@@ -39,12 +39,12 @@ export default function Login() {
     if (!authLoading && user) navigate(from, { replace: true });
   }, [user, authLoading, navigate, from]);
 
-  // Clerk sudah sign in tapi JWT kita belum ada → exchange otomatis
-  // Kalau exchange gagal → logout Clerk biar bersih
+  // Clerk is signed in but our JWT is missing → exchange automatically.
+  // If the exchange fails, log out of Clerk to reset state.
   useEffect(() => {
     if (isSignedIn && !authLoading && !user) {
       exchange().catch((e) => {
-        // Exchange gagal (mis. stale session) → paksa logout Clerk
+        // Exchange failed (e.g. stale session) → force a Clerk logout
         console.error("[exchange]", e);
         logout();
       });
@@ -56,15 +56,15 @@ export default function Login() {
     setBusyGoogle(true);
     setError("");
     try {
-      // Kalau sudah signed in di Clerk → exchange dulu, tidak perlu OAuth lagi
+      // Already signed in to Clerk → exchange first, no need for OAuth again
       if (isSignedIn) {
         await exchange();
         return;
       }
-      // Sign out dulu kalau ada stale session yang tidak terdeteksi isSignedIn
+      // Sign out first in case of a stale session not caught by isSignedIn
       await clerk.signOut({ redirectUrl: undefined });
       if (Capacitor.isNativePlatform()) {
-        // APK: OAuth lewat system browser + deep link (cookie tak jalan di native).
+        // APK: OAuth via system browser + deep link (cookies don't work natively).
         if (!signIn || !signUp) {
           setBusyGoogle(false);
           return;
@@ -84,7 +84,7 @@ export default function Login() {
       });
     } catch (e) {
       console.error("[login google]", e);
-      // detail hanya di APK (buat debug tanpa console); web tetap generik
+      // Details only on APK (to debug without console); web stays generic
       setError(Capacitor.isNativePlatform() ? errText(e) : "Telah Terjadi Sebuah Kesalahan.");
       setBusyGoogle(false);
     }
@@ -169,7 +169,7 @@ export default function Login() {
 
         {error && <p className="mt-3 text-left text-[13px] text-[#F2B8B8]">{error}</p>}
 
-        {/* Tombol reset muncul kalau stuck dengan stale Clerk session */}
+        {/* Reset button shown when stuck with a stale Clerk session */}
         {isSignedIn && !user && (
           <button
             type="button"

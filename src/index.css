@@ -16,7 +16,7 @@
   --m3-surface-high: #2b2930;
 }
 
-/* AMOLED: hitam pekat, surface lain ikut menggelap */
+/* AMOLED: pure black; other surfaces darken too */
 [data-theme="amoled"] {
   --m3-surface: #000000;
   --m3-surface-low: #0b0b0c;
@@ -29,12 +29,12 @@ body {
   background: var(--m3-surface);
 }
 
-/* Font aplikasi (Pengaturan) */
+/* App font (Settings) */
 html[data-font="pixel"] {
   font-family: "Pixelify Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Kurangi animasi (Pengaturan) */
+/* Reduced motion (Settings) */
 html[data-motion="reduce"] *,
 html[data-motion="reduce"] *::before,
 html[data-motion="reduce"] *::after {
@@ -65,7 +65,7 @@ html[data-motion="reduce"] *::after {
   }
 }
 
-/* Transisi halaman ala Android (Material motion) */
+/* Android-style page transition (Material motion) */
 @keyframes page-forward {
   from {
     opacity: 0;

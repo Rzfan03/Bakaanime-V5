@@ -2,15 +2,15 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Readable } from "node:stream";
 import { clerkFrontendApiProxy } from "@clerk/backend/proxy";
 
-// Proxy Clerk Frontend API. Di domain *.vercel.app tak bisa CNAME ke Clerk,
-// jadi browser memanggil /__clerk/* (lihat vercel.json) dan diteruskan ke sini.
-// Pakai implementasi resmi @clerk/backend: menangani Clerk-Proxy-Url,
-// Clerk-Secret-Key, Host, X-Forwarded-*, rewrite Location, dan set-cookie.
+// Proxy for the Clerk Frontend API. *.vercel.app domains can't CNAME to Clerk,
+// so the browser calls /__clerk/* (see vercel.json) and it is forwarded here.
+// Uses the official @clerk/backend implementation, which handles Clerk-Proxy-Url,
+// Clerk-Secret-Key, Host, X-Forwarded-*, Location rewrites, and set-cookie.
 // Docs: https://clerk.com/docs/guides/dashboard/dns-domains/proxy-fapi
 export const config = { api: { bodyParser: false } };
 
-// Dev instance (pk_test) dilayani host-nya sendiri; produksi lewat gateway Clerk.
-// ponytail: frontend-api.clerk.dev mengasumsikan pk_live; ganti bila Clerk ubah skema.
+// Dev instances (pk_test) are served by their own host; production goes through Clerk's gateway.
+// ponytail: frontend-api.clerk.dev assumes pk_live; change if Clerk alters the scheme.
 function fapiUrlForPk(pk?: string): string | undefined {
   if (!pk) return undefined;
   if (pk.startsWith("pk_live_")) return "https://frontend-api.clerk.dev";
@@ -19,10 +19,10 @@ function fapiUrlForPk(pk?: string): string | undefined {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Web memanggil proxy same-origin (tanpa CORS). Native (APK / livereload)
-  // lintas-origin → refleksikan origin apa pun + expose `authorization` (dipakai
-  // bearer native via __internal_onAfterResponse). Aman: tanpa cookie
-  // (credentials: omit), sama seperti FAPI publik Clerk yang memang CORS-open.
+  // Web calls the proxy same-origin (no CORS). Native (APK / livereload) is
+  // cross-origin, so reflect any origin and expose `authorization` (used by the
+  // native bearer via __internal_onAfterResponse). Safe: no cookies
+  // (credentials: omit), same as Clerk's public FAPI which is CORS-open anyway.
   const origin = req.headers.origin as string | undefined;
   if (origin) {
     res.setHeader("Access-Control-Allow-Origin", origin);
@@ -41,8 +41,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  // Vercel rewrite mengubah path jadi /api/clerk-proxy?clerkPath=*, sedangkan
-  // clerkFrontendApiProxy butuh pathname asli /__clerk/* → rekonstruksi.
+  // The Vercel rewrite turns the path into /api/clerk-proxy?clerkPath=*, but
+  // clerkFrontendApiProxy needs the real /__clerk/* pathname → reconstruct it.
   const url = new URL(req.url ?? "/", `https://${req.headers.host ?? "localhost"}`);
   const clerkPath = url.searchParams.get("clerkPath") ?? "";
   url.searchParams.delete("clerkPath");
@@ -73,7 +73,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.status(response.status);
   response.headers.forEach((value, key) => {
     const k = key.toLowerCase();
-    // jangan timpa CORS yang kita set di atas
+    // don't overwrite the CORS headers set above
     if (k !== "set-cookie" && !k.startsWith("access-control-")) res.setHeader(key, value);
   });
   const cookies = response.headers.getSetCookie();

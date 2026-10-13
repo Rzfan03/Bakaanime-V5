@@ -3,12 +3,12 @@ import type { BackendItem } from "./api/backend";
 import { readFavorites, readLibrary, writeFavorites, writeLibrary } from "./storage";
 
 /**
- * Favorit = masuk ke DUA tempat sekaligus: halaman Library dan tab Favorit di profil.
- * Semua tombol hati (Detail, Watch) dan tombol hapus (Library, Profil) lewat sini,
- * supaya kedua daftar selalu sama.
+ * Favorites = written to BOTH places at once: the Library page and the Favorites
+ * tab on the profile. Every heart button (Detail, Watch) and delete button (Library,
+ * Profile) goes through here so the two lists always match.
  */
 export async function addFavorite(item: BackendItem): Promise<void> {
-  // keduanya idempoten di server, jadi aman diulang kalau salah satu gagal
+  // both are idempotent on the server, so re-running is safe if one fails
   await backend.addLibrary(item);
   await backend.addFavorite(item);
   writeLibrary([item, ...readLibrary().filter((i) => i.slug !== item.slug)]);
@@ -23,23 +23,23 @@ export async function removeFavorite(slug: string): Promise<void> {
 }
 
 /**
- * Data lama: favorit dulu dipilih manual (maks. 3) dari library, jadi sebagian
- * anime di library belum jadi favorit. Fungsi ini menambahkan yang kurang
- * supaya library dan favorit sama, lalu mengembalikan kedua daftar terbaru.
+ * Legacy data: favorites used to be picked manually (max 3) from the library, so
+ * some library anime aren't favorites yet. This adds the missing ones so library
+ * and favorites match, then returns both updated lists.
  */
 export async function loadFavorites(): Promise<{ library: BackendItem[]; favorites: BackendItem[] }> {
   const [lib, fav] = await Promise.all([backend.getLibrary(), backend.getFavorites()]);
   const have = new Set(fav.items.map((i) => i.slug));
   const missing = lib.items.filter((i) => !have.has(i.slug));
 
-  // library diurutkan terbaru dulu; tambahkan dari yang terlama agar urutan terjaga
+  // library is ordered newest-first; add from oldest so the order is preserved
   const added: BackendItem[] = [];
   for (const item of [...missing].reverse()) {
     try {
       await backend.addFavorite(item);
       added.unshift(item);
     } catch {
-      /* dicoba lagi pada pemuatan berikutnya */
+      /* retried on the next load */
     }
   }
 

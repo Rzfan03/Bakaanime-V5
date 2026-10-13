@@ -2,16 +2,14 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { useLocation, useNavigationType } from "react-router";
 
-/* Halaman tab di bottom nav: pindah antar-tab pakai fade-through */
+/* Bottom-nav tab routes; switching between tabs uses fade-through. */
 const TABS = new Set(["/", "/search", "/library", "/profile"]);
 
 type Kind = "forward" | "back" | "fade";
 
 /**
- * Transisi halaman ala Android (Material motion):
- * - buka halaman baru (Detail, Watch, Settings)  → geser masuk dari kanan
- * - tombol kembali                                → geser masuk dari kiri
- * - pindah antar-tab                              → fade + sedikit zoom
+ * Android-style transitions: a new page slides in from the right, back slides
+ * in from the left, and tab switches fade with a slight zoom.
  */
 export default function PageTransition({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
@@ -21,7 +19,7 @@ export default function PageTransition({ children }: { children: ReactNode }) {
     kind: "fade",
   });
 
-  // hitung arah transisi saat path berubah (pola "adjust state during render")
+  // Adjust state during render to recompute the direction when the path changes.
   if (state.path !== pathname) {
     const kind: Kind =
       TABS.has(state.path) && TABS.has(pathname)
@@ -33,7 +31,7 @@ export default function PageTransition({ children }: { children: ReactNode }) {
   }
 
   return (
-    // overflow-x: clip mencegah scroll horizontal saat halaman bergeser masuk
+    // overflow-x: clip stops horizontal scroll while pages slide in
     <div className="overflow-x-clip">
       <div key={pathname} className={`page-${state.kind}`}>
         {children}

@@ -146,8 +146,8 @@ export const normalizeDetail = (raw: any): AnimeDetail => {
   return detail;
 };
 
-// Slug salah tetap dibalas 200 tapi isinya sampah (headline beranda), jadi respons harus
-// divalidasi: detail asli selalu punya info atau episode.
+// Bad slugs still return 200 with garbage (homepage headlines), so validate:
+// a real detail always has info or episodes.
 const isRealDetail = (raw: any): boolean => {
   const d = raw?.data ?? raw?.detail ?? raw ?? {};
   const info = d?.info ?? {};
@@ -165,7 +165,7 @@ const fetchDetail = async (slug: string): Promise<AnimeDetail | null> => {
   return detail;
 };
 
-// Slug seri kanonik upstream hanya bisa dipastikan lewat endpoint episode.
+// The canonical upstream series slug can only be confirmed via the episode endpoint.
 const resolveAnimeSlug = async (episodeSlug: string): Promise<string> => {
   try {
     const res = await api.get(`/episode/${encodeURIComponent(episodeSlug)}`);
@@ -175,8 +175,8 @@ const resolveAnimeSlug = async (episodeSlug: string): Promise<string> => {
   }
 };
 
-// Upstream series slug kadang punya/tidak punya "-season-N"/"-part-N"/"-cour-N" (mis.
-// rezero-...-season-1 -> rezero-...). Coba varian slug sebelum jatuh ke resolusi episode.
+// Upstream series slugs sometimes include (or omit) "-season-N"/"-part-N"/"-cour-N"
+// (e.g. rezero-...-season-1 -> rezero-...). Try variants before falling back to episode resolution.
 const detailCandidates = (slug: string): string[] => {
   const out = [slug];
   const add = (s: string) => {
@@ -190,7 +190,7 @@ const detailCandidates = (slug: string): string[] => {
 };
 
 export const getDetail = async (slug: string): Promise<AnimeDetail> => {
-  // Kartu feed memakai slug episode; seri biasanya = slug tanpa "-episode-N".
+  // Feed cards use episode slugs; the series is usually the slug without "-episode-N".
   const candidates = detailCandidates(isEpisodeSlug(slug) ? seriesSlugOf(slug) : slug);
   for (const candidate of candidates) {
     const found = await fetchDetail(candidate).catch(() => null);
@@ -231,7 +231,7 @@ export const normalizeEpisode = (raw: any, episodeSlug = ""): EpisodeDetail => {
     }))
     .filter((l) => l.url);
 
-  // API tidak mengembalikan anime_slug, derive dari slug episode
+  // API doesn't return anime_slug; derive it from the episode slug
   const animeSlug =
     normSlug(pickString(d, ["anime_slug", "animeSlug"])) ||
     seriesSlugOf(episodeSlug);

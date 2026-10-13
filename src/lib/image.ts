@@ -6,12 +6,12 @@ function withTimeout<T>(p: Promise<T>, ms: number, msg: string): Promise<T> {
 }
 
 function toJpeg(canvas: HTMLCanvasElement): string {
-  // ponytail: output kecil biar PUT ke Neon cepat. Pindah ke object storage
-  // (S3/R2) saat upload GIF / file besar mulai dibutuhkan.
+  // ponytail: small output so the PUT to Neon is fast. Move to object storage
+  // (S3/R2) when uploading GIFs / large files becomes necessary.
   return canvas.toDataURL("image/jpeg", 0.8);
 }
 
-// fallback untuk browser tanpa resize-opsi / format yang tak bisa di-bitmap
+// fallback for browsers without resize options / formats that can't be bitmap-decoded
 async function viaImageElement(file: File, maxSize: number): Promise<string> {
   const url = URL.createObjectURL(file);
   try {
@@ -43,8 +43,8 @@ export async function fileToResizedDataUrl(
     throw new Error("File harus berupa gambar.");
   }
 
-  // Decode langsung ke ukuran target: rasio terjaga, memori kecil, off main
-  // thread. Ini yang mencegah freeze pada foto besar.
+  // Decode straight to the target size: aspect ratio kept, low memory, off the
+  // main thread. This is what prevents freezing on large photos.
   if (typeof createImageBitmap === "function") {
     let bitmap: ImageBitmap | null = null;
     try {
@@ -54,7 +54,7 @@ export async function fileToResizedDataUrl(
         "Gambar lama diproses.",
       );
     } catch {
-      bitmap = null; // lanjut ke fallback
+      bitmap = null;
     }
     if (bitmap) {
       try {

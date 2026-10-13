@@ -28,12 +28,12 @@ function read(): AppSettings {
     const raw = JSON.parse(localStorage.getItem(KEY) ?? "null");
     if (raw && typeof raw === "object") return { ...DEFAULT_SETTINGS, ...raw };
   } catch {
-    /* pakai default */
+    /* use defaults */
   }
   return DEFAULT_SETTINGS;
 }
 
-/* Terapkan ke <html>: dipanggil sekali saat start dan tiap pengaturan berubah */
+/* Apply to <html>: called once at start and on every settings change */
 export function applySettings(s: AppSettings) {
   const el = document.documentElement;
   el.dataset.theme = s.theme;
@@ -45,7 +45,6 @@ export function applySettings(s: AppSettings) {
     ?.setAttribute("content", THEME_COLOR[s.theme]);
 }
 
-/* ── store sederhana (tanpa library) ── */
 let current = read();
 const listeners = new Set<() => void>();
 
@@ -54,7 +53,7 @@ function emit(next: AppSettings) {
   try {
     localStorage.setItem(KEY, JSON.stringify(next));
   } catch {
-    /* abaikan kalau storage penuh/diblokir */
+    /* ignore if storage is full/blocked */
   }
   applySettings(next);
   listeners.forEach((l) => l());

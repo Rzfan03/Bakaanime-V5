@@ -6,28 +6,13 @@ import type { BackendComment } from "../lib/api/backend";
 import { useAuth } from "../lib/auth";
 import { fontStyle } from "../pages/Profile";
 
-/* ─────────────────────────────────────────────
-   Material 3 dark — token yang dipakai
-   surface                #141218
-   surface-container-low  #1D1B20   on-surface          #E6E0E9
-   surface-container      #211F26   on-surface-variant  #CAC4D0
-   outline                #938F99   outline-variant     #49454F
-   primary                #D0BCFF   on-primary          #381E72
-   primary-container      #4F378B   on-primary-cont.    #EADDFF
-   secondary-container    #4A4458   on-secondary-cont.  #E8DEF8
-   error                  #F2B8B5   error-container     #8C1D18
-   ───────────────────────────────────────────── */
-
-/* Class statis (aman untuk Tailwind JIT). Feedback sentuh pakai active:, bukan hover. */
+/* Static class strings so Tailwind JIT includes them. Touch feedback uses active:, not hover. */
 const FILLED_BUTTON =
   "inline-flex h-10 items-center justify-center rounded-full bg-[#D0BCFF] px-6 text-[14px] font-medium text-[#381E72] outline-none transition-[filter] active:brightness-90 disabled:bg-[#E6E0E9]/[0.12] disabled:text-[#E6E0E9]/[0.38]";
 
 const TEXT_BUTTON =
   "inline-flex h-10 items-center justify-center rounded-full px-4 text-[14px] font-medium text-[#D0BCFF] outline-none transition-colors active:bg-[#D0BCFF]/[0.12]";
 
-/* ─────────────────────────────────────────────
-   Helpers
-   ───────────────────────────────────────────── */
 function timeAgo(iso: string): string {
   const diff = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
   if (diff < 60) return "Baru saja";
@@ -41,9 +26,6 @@ function timeAgo(iso: string): string {
   });
 }
 
-/* ─────────────────────────────────────────────
-   Avatar
-   ───────────────────────────────────────────── */
 function CommentAvatar({
   name,
   src,
@@ -88,9 +70,6 @@ function CommentAvatar({
   );
 }
 
-/* ─────────────────────────────────────────────
-   Verified badge
-   ───────────────────────────────────────────── */
 function VerifiedBadge({ role }: { role: string }) {
   const fill = role === "dev" ? "#D0BCFF" : role === "admin" ? "#80BCBD" : "#60A5FA";
   return (
@@ -101,9 +80,6 @@ function VerifiedBadge({ role }: { role: string }) {
   );
 }
 
-/* ─────────────────────────────────────────────
-   Role chip
-   ───────────────────────────────────────────── */
 function RoleChip({ role }: { role: string }) {
   if (role === "dev")
     return (
@@ -126,11 +102,6 @@ function cardTone(role: string): string {
   return "bg-[#1D1B20]";
 }
 
-/* ─────────────────────────────────────────────
-   Comment row
-   Nama, badge, dan chip dikelompokkan rapat (gap-1),
-   lalu waktu dipisah lebih longgar di sebelahnya.
-   ───────────────────────────────────────────── */
 function CommentRow({ comment }: { comment: BackendComment }) {
   const isPrivileged = comment.author_role === "dev" || comment.author_role === "admin";
   const font = isPrivileged ? fontStyle(comment.author_font ?? "default") : {};
@@ -142,7 +113,6 @@ function CommentRow({ comment }: { comment: BackendComment }) {
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-          {/* identitas: nama + badge + chip */}
           <div className="flex min-w-0 items-center gap-1.5">
             <span
               className="truncate text-[14px] font-medium leading-5 text-[#E6E0E9]"
@@ -171,9 +141,6 @@ function CommentRow({ comment }: { comment: BackendComment }) {
   );
 }
 
-/* ─────────────────────────────────────────────
-   Skeleton
-   ───────────────────────────────────────────── */
 function CommentSkeleton() {
   const bar = "animate-pulse rounded-full bg-[#2B2930] motion-reduce:animate-none";
   return (
@@ -187,9 +154,6 @@ function CommentSkeleton() {
   );
 }
 
-/* ─────────────────────────────────────────────
-   Main export
-   ───────────────────────────────────────────── */
 const VISIBLE_LIMIT = 8;
 const MAX_LENGTH = 1000;
 const WARN_AT = 900;
@@ -228,7 +192,6 @@ export default function Comments({ animeSlug }: { animeSlug: string }) {
 
   useEffect(() => load(), [load]);
 
-  /* auto-resize textarea */
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -259,7 +222,6 @@ export default function Comments({ animeSlug }: { animeSlug: string }) {
 
   return (
     <section className="pb-6" aria-labelledby="comments-title">
-      {/* ── header ── */}
       <div className="flex items-center gap-3 px-4 pb-4 pt-6">
         <h2 id="comments-title" className="text-[22px] font-normal leading-7 text-[#E6E0E9]">
           Komentar
@@ -271,7 +233,6 @@ export default function Comments({ animeSlug }: { animeSlug: string }) {
         )}
       </div>
 
-      {/* ── kolom tulis ── */}
       {user ? (
         <div className="mx-4 mb-5 flex gap-3">
           <CommentAvatar name={user.name} src={user.avatar} size={40} />
@@ -323,7 +284,6 @@ export default function Comments({ animeSlug }: { animeSlug: string }) {
         </div>
       )}
 
-      {/* ── daftar ── */}
       {loading ? (
         <div role="status" aria-busy="true" aria-label="Memuat komentar" className="space-y-2 px-4">
           <CommentSkeleton />

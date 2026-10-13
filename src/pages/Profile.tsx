@@ -20,9 +20,6 @@ import Poster from "../components/Poster";
 
 const detailPath = (slug: string) => `/detail/${encodeURIComponent(slug)}`;
 
-/* ───────────────────────────────────────────────────────────────
-   Avatar frame types & styles
-   ─────────────────────────────────────────────────────────────── */
 type FrameId = "plain" | "aurora" | "neon" | "hex" | "ember" | "orbit" | "gold";
 
 interface FrameDef {
@@ -127,9 +124,6 @@ function canUseFrame(userRole: string, frame: FrameDef): boolean {
   return roleLevel(userRole) >= roleLevel(frame.minRole);
 }
 
-/* ───────────────────────────────────────────────────────────────
-   Avatar placeholder
-   ─────────────────────────────────────────────────────────────── */
 function AvatarPlaceholder({ name }: { name: string }) {
   const initials = name
     .split(" ")
@@ -143,9 +137,6 @@ function AvatarPlaceholder({ name }: { name: string }) {
   );
 }
 
-/* ───────────────────────────────────────────────────────────────
-   Skeleton shimmer (untuk avatar loading)
-   ─────────────────────────────────────────────────────────────── */
 function AvatarSkeleton() {
   return (
     <div
@@ -156,9 +147,6 @@ function AvatarSkeleton() {
   );
 }
 
-/* ───────────────────────────────────────────────────────────────
-   Dev badge
-   ─────────────────────────────────────────────────────────────── */
 function RoleBadge({ role }: { role: string }) {
   if (role === "dev")
     return (
@@ -175,9 +163,6 @@ function RoleBadge({ role }: { role: string }) {
   return null;
 }
 
-/* ───────────────────────────────────────────────────────────────
-   Avatar frame component
-   ─────────────────────────────────────────────────────────────── */
 function AvatarFrame({
   src,
   name,
@@ -260,9 +245,6 @@ function AvatarFrame({
   );
 }
 
-/* ───────────────────────────────────────────────────────────────
-   Frame picker di dalam EditSheet
-   ─────────────────────────────────────────────────────────────── */
 function FramePicker({
   current,
   userRole,
@@ -352,9 +334,6 @@ function FramePicker({
   );
 }
 
-/* ───────────────────────────────────────────────────────────────
-   Font options
-   ─────────────────────────────────────────────────────────────── */
 export type FontId = "default" | "mono" | "serif" | "cursive" | "pixel" | "rounded";
 
 export const FONT_OPTIONS: { id: FontId; label: string; style: React.CSSProperties }[] = [
@@ -412,9 +391,6 @@ function FontPicker({
   );
 }
 
-/* ───────────────────────────────────────────────────────────────
-   Bottom sheet edit profil
-   ─────────────────────────────────────────────────────────────── */
 function EditSheet({
   profile,
   userRole,
@@ -463,7 +439,7 @@ function EditSheet({
     setError("");
     setSaving(true);
     try {
-      // font hanya boleh admin/dev (backend 403 kalau user biasa) → jangan kirim
+      // Font is admin/dev only (backend returns 403 for regular users), so omit it
       const canFont = userRole === "admin" || userRole === "dev";
       await onSave({
         name: name.trim(),
@@ -569,9 +545,6 @@ function EditSheet({
   );
 }
 
-/* ───────────────────────────────────────────────────────────────
-   Fav card
-   ─────────────────────────────────────────────────────────────── */
 function FavCard({ item, onRemove }: { item: FavoriteItem; onRemove: (slug: string) => void }) {
   return (
     <div className="group relative">
@@ -602,9 +575,6 @@ function FavCard({ item, onRemove }: { item: FavoriteItem; onRemove: (slug: stri
   );
 }
 
-/* ───────────────────────────────────────────────────────────────
-   Comment row
-   ─────────────────────────────────────────────────────────────── */
 function timeAgo(iso: string): string {
   const m = Math.floor(Math.max(0, Date.now() - new Date(iso).getTime()) / 60000);
   if (m < 1) return "Baru saja";
@@ -639,9 +609,6 @@ const CSS_KEYFRAMES = `
 }
 `;
 
-/* ───────────────────────────────────────────────────────────────
-   Main page
-   ─────────────────────────────────────────────────────────────── */
 const FRAME_KEY = "bakaanime_avatar_frame";
 
 function readFrame(): FrameId {
@@ -756,9 +723,9 @@ export default function Profile() {
   };
 
   const pickImage = (kind: "avatar" | "banner") => {
-    // Pakai <input type=file> di semua platform: di Android WebView pun memakai
-    // file chooser sistem yang mengembalikan file asli, jadi GIF tetap animasi
-    // (plugin Kamera men-encode ulang jadi JPEG diam).
+    // Use a plain <input type="file"> on every platform: even in the Android
+    // WebView the system file chooser returns the original file, so GIFs stay
+    // animated (the Camera plugin re-encodes to a static JPEG).
     (kind === "avatar" ? avatarInputRef : bannerInputRef).current?.click();
   };
 
@@ -786,7 +753,6 @@ export default function Profile() {
     >
       <style>{CSS_KEYFRAMES}</style>
 
-      {/* ── Sticky top bar ── */}
       <header
         className={`fixed top-0 left-1/2 z-20 flex w-full max-w-[480px] -translate-x-1/2 items-center gap-1.5 px-2 transition-[background,backdrop-filter] duration-300 ${
           headerSolid
@@ -822,7 +788,6 @@ export default function Profile() {
         </div>
       </header>
 
-      {/* ── Banner ── */}
       <div className="relative h-[180px] overflow-hidden sm:h-[200px]">
         {profile.banner ? (
           <img
@@ -844,7 +809,6 @@ export default function Profile() {
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-[color:var(--m3-surface)]" />
       </div>
 
-      {/* ── Profile head ── */}
       <div className="relative z-[1] px-4">
         <div className="-mt-12 flex items-end justify-between gap-3">
           {busyImage === "avatar" ? (
@@ -924,7 +888,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* ── Tabs ── */}
       <div
         className="sticky z-10 mt-5 grid grid-cols-2 border-b border-[#49454F]/80 bg-[color:var(--m3-surface)]"
         style={{ top: "calc(56px + env(safe-area-inset-top, 0px))" }}
@@ -948,7 +911,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* ── Tab content ── */}
       {tab === 0 && (
         <div className="pb-6">
           {commentsLoading ? (
@@ -997,7 +959,7 @@ export default function Profile() {
         </div>
       )}
 
-      {/* Spacer bawah (nav sudah disembunyikan) */}
+      {/* Bottom spacer (nav is hidden) */}
       <div className="h-[calc(24px+env(safe-area-inset-bottom,0px))]" />
 
       {/* Hidden file inputs */}
@@ -1022,7 +984,6 @@ export default function Profile() {
         }}
       />
 
-      {/* Edit bottom sheet */}
       {editing && (
         <EditSheet
           profile={profile}
