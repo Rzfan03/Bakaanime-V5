@@ -14,6 +14,8 @@ import {
   Settings,
   User,
 } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
 import { getHome } from "../lib/api/anime";
 import { readLibrary } from "../lib/storage";
 import type { LibraryItem } from "../lib/storage";
@@ -21,8 +23,14 @@ import type { AnimeItem, AnimeListResult } from "../types/anime";
 import OverflowMenu from "../components/OverflowMenu";
 import { useAuth } from "../lib/auth";
 import Poster from "../components/Poster";
+import { Dialog } from "../components/Dialog";
+import { getInstalledVersion, getLatestRelease, isNewer } from "../lib/version";
+import type { ReleaseInfo } from "../lib/version";
 
 const BANNER_COUNT = 5;
+
+// Only check for updates once per app launch, not on every Home mount.
+let updateChecked = false;
 
 const pathFor = (a: AnimeItem) => `/detail/${encodeURIComponent(a.slug)}`;
 
@@ -227,9 +235,28 @@ export default function Home() {
 
   const [typeFilter, setTypeFilter] = useState("Semua");
   const [library, setLibrary] = useState<LibraryItem[]>([]);
+  const [update, setUpdate] = useState<ReleaseInfo | null>(null);
 
   useEffect(() => {
     setLibrary(readLibrary());
+  }, []);
+
+  // Prompt to update when the installed app is behind the latest release.
+  useEffect(() => {
+    if (updateChecked || !Capacitor.isNativePlatform()) return;
+    updateChecked = true;
+    let cancelled = false;
+    (async () => {
+      const current = await getInstalledVersion();
+      const latest = await getLatestRelease();
+      if (cancelled || !current || !latest) return;
+      if (!isNewer(latest.version, current)) return;
+      if (localStorage.getItem("skippedUpdate") === latest.version) return;
+      setUpdate(latest);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -416,6 +443,26 @@ export default function Home() {
           </nav>
         )}
       </main>
+
+      {update && (
+        <Dialog
+          title="Update tersedia"
+          body={
+            `Versi ${update.version} sudah tersedia.` +
+            (update.notes ? `\n\n${update.notes}` : "")
+          }
+          confirmLabel="Update"
+          cancelLabel="Nanti"
+          onConfirm={() => {
+            void Browser.open({ url: update.apkUrl });
+            setUpdate(null);
+          }}
+          onCancel={() => {
+            localStorage.setItem("skippedUpdate", update.version);
+            setUpdate(null);
+          }}
+        />
+      )}
     </div>
   );
 }

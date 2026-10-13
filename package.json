@@ -11,7 +11,8 @@
     "cap:sync": "cap sync android",
     "cap:run": "cap run android",
     "genkey": "node --env-file=.env scripts/genkey.mjs",
-    "check:notif": "node scripts/check-notif.ts"
+    "check:notif": "node scripts/check-notif.ts",
+    "check:version": "node scripts/check-version.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
