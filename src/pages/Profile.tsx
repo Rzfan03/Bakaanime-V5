@@ -728,8 +728,10 @@ export default function Profile() {
     try {
       const maxSize = 15 * 1024 * 1024;
       if (file.size > maxSize) throw new Error("File terlalu besar (maks. 15 MB).");
+      const isGif =
+        file.type === "image/gif" || /\.gif$/i.test(file.name);
       let dataUrl: string;
-      if (file.type === "image/gif") {
+      if (isGif) {
         dataUrl = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result as string);
