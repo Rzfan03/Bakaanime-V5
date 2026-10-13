@@ -74,6 +74,7 @@ export type SessionUser = {
   bio: string;
   verified: boolean;
   role: string;
+  font: string;
 };
 
 export type BackendItem = { slug: string; title: string; poster: string };
@@ -86,16 +87,17 @@ export type BackendComment = {
   author_avatar: string | null;
   author_verified: boolean;
   author_role: string;
+  author_font: string;
 };
+
+// komentar milik user sendiri — include anime_slug untuk ditampilkan di profil
+export type UserComment = BackendComment & { anime_slug: string };
 
 export const backend = {
   getMe: () => request<{ user: SessionUser | null }>("/me"),
 
-  loginWithGoogle: (credential: string) =>
-    request<{ token: string; user: SessionUser }>("/auth/google", {
-      method: "POST",
-      body: { credential },
-    }),
+  loginWithClerk: (payload: { token: string; name?: string; email?: string; avatar?: string | null }) =>
+    request<{ token: string; user: SessionUser }>("/auth/clerk", { method: "POST", body: payload }),
 
   loginWithKey: (key: string) =>
     request<{ token: string; user: SessionUser }>("/auth/key", {
@@ -103,12 +105,16 @@ export const backend = {
       body: { key },
     }),
 
-  updateProfile: (data: Partial<Pick<SessionUser, "name" | "bio" | "avatar" | "banner">>) =>
+  updateProfile: (data: Partial<Pick<SessionUser, "name" | "bio" | "avatar" | "banner" | "font">>) =>
     request<{ user: SessionUser }>("/profile", { method: "PUT", body: data }),
 
   getFavorites: () => request<{ items: BackendItem[] }>("/favorites"),
   putFavorites: (items: BackendItem[]) =>
     request<{ items: BackendItem[] }>("/favorites", { method: "PUT", body: { items } }),
+  addFavorite: (item: BackendItem) =>
+    request<{ ok: true }>("/favorites", { method: "POST", body: item }),
+  removeFavorite: (slug: string) =>
+    request<{ ok: true }>(`/favorites?slug=${encodeURIComponent(slug)}`, { method: "DELETE" }),
 
   getLibrary: () => request<{ items: BackendItem[] }>("/library"),
   addLibrary: (item: BackendItem) =>
@@ -122,6 +128,8 @@ export const backend = {
 
   getComments: (slug: string) =>
     request<{ comments: BackendComment[] }>(`/comments?slug=${encodeURIComponent(slug)}`),
+  getMyComments: () =>
+    request<{ comments: UserComment[] }>("/comments?user=me"),
   postComment: (animeSlug: string, body: string) =>
     request<{ comment: BackendComment }>("/comments", {
       method: "POST",

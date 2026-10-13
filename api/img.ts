@@ -1,7 +1,22 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { guard, json } from "./_lib/http.js";
 
-const ALLOWED_HOSTS = new Set(["anoboy.be", "www.anoboy.be"]);
+const HOST_SUFFIXES = ["anoboy.be", "anime-kuindo.com"];
+const PHOTON_HOSTS = new Set(["i0.wp.com", "i1.wp.com", "i2.wp.com"]);
+
+const matchesSuffix = (host: string) => {
+  const h = host.toLowerCase();
+  return HOST_SUFFIXES.some((s) => h === s || h.endsWith(`.${s}`));
+};
+
+const isAllowed = (url: URL): boolean => {
+  if (url.protocol !== "https:") return false;
+  if (matchesSuffix(url.hostname)) return true;
+  if (PHOTON_HOSTS.has(url.hostname.toLowerCase())) {
+    return matchesSuffix(url.pathname.split("/")[1] ?? "");
+  }
+  return false;
+};
 
 const UA =
   "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36";
@@ -23,7 +38,7 @@ export default guard(async (req: VercelRequest, res: VercelResponse) => {
     return json(res, 400, { error: "bad_url" });
   }
 
-  if (target.protocol !== "https:" || !ALLOWED_HOSTS.has(target.hostname)) {
+  if (!isAllowed(target)) {
     return json(res, 400, { error: "host_not_allowed" });
   }
 
@@ -41,8 +56,12 @@ export default guard(async (req: VercelRequest, res: VercelResponse) => {
     if (!upstream.ok || !upstream.body) {
       return json(res, 502, { error: `upstream_${upstream.status}` });
     }
+    const type = upstream.headers.get("content-type") ?? "image/jpeg";
+    if (!type.toLowerCase().startsWith("image/")) {
+      return json(res, 502, { error: "upstream_not_image" });
+    }
     const buf = Buffer.from(await upstream.arrayBuffer());
-    res.setHeader("Content-Type", upstream.headers.get("content-type") ?? "image/jpeg");
+    res.setHeader("Content-Type", type);
     res.setHeader("Cache-Control", "public, max-age=31536000, s-maxage=604800, immutable");
     res.status(200).end(buf);
   } catch {

@@ -8,12 +8,32 @@ export default guard(async (req, res) => {
   if (preflight(req, res)) return;
 
   if (req.method === "GET") {
+    // GET /comments?user=me  → komentar milik user yang login
+    if (req.query.user === "me") {
+      const auth = await requireUser(req);
+      if ("error" in auth) return json(res, 401, { error: auth.error });
+      const rows = await sql`
+        select c.id, c.body, c.created_at, c.anime_slug,
+               u.name as author_name, u.avatar as author_avatar,
+               u.verified as author_verified, u.role as author_role,
+               u.font as author_font
+        from comments c
+        join users u on u.id = c.user_id
+        where c.user_id = ${auth.user.id}
+        order by c.created_at desc
+        limit 50
+      `;
+      return json(res, 200, { comments: rows });
+    }
+
+    // GET /comments?slug=...  → komentar untuk satu anime
     const slug = typeof req.query.slug === "string" ? req.query.slug : "";
     if (!slug) return json(res, 400, { error: "slug_required" });
     const rows = await sql`
       select c.id, c.body, c.created_at,
              u.name as author_name, u.avatar as author_avatar,
-             u.verified as author_verified, u.role as author_role
+             u.verified as author_verified, u.role as author_role,
+             u.font as author_font
       from comments c
       join users u on u.id = c.user_id
       where c.anime_slug = ${slug}
@@ -44,6 +64,7 @@ export default guard(async (req, res) => {
         author_avatar: auth.user.avatar,
         author_verified: auth.user.verified,
         author_role: auth.user.role,
+        author_font: auth.user.font ?? "default",
       },
     });
   }

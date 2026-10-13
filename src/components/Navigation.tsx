@@ -1,5 +1,5 @@
 import { Home, Search, History, User } from "lucide-react"
-import { NavLink } from "react-router"
+import { NavLink, useLocation } from "react-router"
 import { useAuth } from "../lib/auth"
 
 const tabs = [
@@ -11,11 +11,22 @@ const tabs = [
 
 const Navigation = () => {
   const { user } = useAuth()
+  const location = useLocation()
   const avatar = user?.avatar ?? null
 
+  // Sembunyikan nav di halaman Profile dengan animasi smooth (Material motion)
+  const isProfile = location.pathname === "/profile"
+
   return (
-    <nav className="pointer-events-none z-50 fixed inset-x-0 bottom-0 flex justify-center px-4 pb-[calc(env(safe-area-inset-bottom)+12px)]">
-      <ul className="pointer-events-auto flex items-center gap-1 rounded-full bg-[#2B2930] p-2 shadow-lg shadow-black/40">
+    <nav
+      className={`pointer-events-none z-50 fixed inset-x-0 bottom-0 flex justify-center px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] ${
+        isProfile
+          ? "translate-y-[120%] opacity-0"
+          : "translate-y-0 opacity-100"
+      }`}
+      aria-hidden={isProfile}
+    >
+      <ul className="pointer-events-auto flex items-center gap-1 rounded-full bg-[color:var(--m3-surface-high)] p-2 shadow-lg shadow-black/40">
         {tabs.map(({ to, label, icon: Icon }) => (
           <li key={to}>
             <NavLink

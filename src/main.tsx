@@ -1,35 +1,51 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { ClerkProvider } from '@clerk/react'
 import './index.css'
 import App from './App.tsx'
 import { BrowserRouter } from 'react-router'
 import { AuthProvider } from './lib/auth.tsx'
+import { initSettings } from './lib/settings.ts'
 
+const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string
+
+// muat font Pixelify Sans
+const pixelFont = document.createElement('link')
+pixelFont.rel = 'stylesheet'
+pixelFont.href =
+  'https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap'
+document.head.appendChild(pixelFont)
+
+// fallback: gambar gagal dimuat → placeholder, biar tak ada kotak kosong
 const PLACEHOLDER =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 450'%3E%3Crect width='100%25' height='100%25' fill='%232B2930'/%3E%3C/svg%3E";
-
-// Gambar poster gagal (proxy down / jaringan) → ganti placeholder sekali, jangan kotak kosong.
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='450'%3E%3Crect width='100%25' height='100%25' fill='%232B2930'/%3E%3C/svg%3E"
 window.addEventListener(
   "error",
   (e) => {
-    const el = e.target as HTMLElement | null;
-    if (el?.tagName === "IMG") {
-      const img = el as HTMLImageElement;
-      if (!img.dataset.fallback) {
-        img.dataset.fallback = "1";
-        img.src = PLACEHOLDER;
-      }
+    const t = e.target as HTMLImageElement | null
+    if (t?.tagName === "IMG" && !t.dataset.fallback) {
+      t.dataset.fallback = "1"
+      t.src = PLACEHOLDER
     }
   },
   true,
-);
+)
+
+initSettings() // terapkan tema/ukuran teks/font sebelum render
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </BrowserRouter>
+    <ClerkProvider
+      publishableKey={CLERK_PUBLISHABLE_KEY}
+      afterSignOutUrl="/login"
+      signInFallbackRedirectUrl="/"
+      signUpFallbackRedirectUrl="/"
+    >
+      <BrowserRouter>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </BrowserRouter>
+    </ClerkProvider>
   </StrictMode>,
 )

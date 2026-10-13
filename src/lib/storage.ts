@@ -51,11 +51,11 @@ export function markWatched(animeSlug: string, episodeSlug: string): string[] {
   return next;
 }
 
-/* ── Favorites (max 3, for profile) ─────────────────────────── */
+/* ── Favorites (tampil di Library dan tab Favorit di profil) ── */
 export function readFavorites(): FavoriteItem[] {
   try {
     const raw = JSON.parse(localStorage.getItem("favorites") ?? "[]");
-    return Array.isArray(raw) ? raw.slice(0, 3) : [];
+    return Array.isArray(raw) ? raw : [];
   } catch {
     return [];
   }
@@ -63,7 +63,7 @@ export function readFavorites(): FavoriteItem[] {
 
 export function writeFavorites(items: FavoriteItem[]) {
   try {
-    localStorage.setItem("favorites", JSON.stringify(items.slice(0, 3)));
+    localStorage.setItem("favorites", JSON.stringify(items));
   } catch {
     return;
   }
@@ -74,7 +74,7 @@ export function toggleFavorite(item: FavoriteItem): FavoriteItem[] {
   const exists = current.some((f) => f.slug === item.slug);
   const next = exists
     ? current.filter((f) => f.slug !== item.slug)
-    : [...current, item].slice(0, 3);
+    : [item, ...current];
   writeFavorites(next);
   return next;
 }

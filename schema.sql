@@ -21,6 +21,10 @@ alter table users add column if not exists verified boolean not null default fal
 -- role: user | wibu | admin | dev
 alter table users add column if not exists role text not null default 'user';
 
+-- font username kustom (hanya admin/dev yang bisa ubah)
+-- nilai: 'default' | 'mono' | 'serif' | 'cursive' | 'pixel' | 'rounded'
+alter table users add column if not exists font text not null default 'default';
+
 create table if not exists favorites (
   user_id      uuid not null references users(id) on delete cascade,
   anime_slug   text not null,

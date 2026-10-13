@@ -9,14 +9,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Info,
+  LogOut,
   RefreshCw,
   Search,
+  Settings,
   User,
 } from "lucide-react";
 import { getHome } from "../lib/api/anime";
 import { readLibrary } from "../lib/storage";
 import type { LibraryItem } from "../lib/storage";
 import type { AnimeItem, AnimeListResult } from "../types/anime";
+import OverflowMenu from "../components/OverflowMenu";
+import { useAuth } from "../lib/auth";
+import Poster from "../components/Poster";
 
 const BANNER_COUNT = 5;
 
@@ -36,7 +41,7 @@ function BannerCarousel({
   if (loading && items.length === 0) {
     return (
       <div className="px-4" aria-hidden="true">
-        <div className="aspect-[4/5] animate-pulse rounded-3xl bg-[#2B2930] motion-reduce:animate-none sm:aspect-[16/9] lg:aspect-[21/9]" />
+        <div className="aspect-[4/5] animate-pulse rounded-3xl bg-[color:var(--m3-surface-high)] motion-reduce:animate-none sm:aspect-[16/9] lg:aspect-[21/9]" />
       </div>
     );
   }
@@ -64,7 +69,7 @@ function BannerCarousel({
             "--swiper-pagination-bottom": "14px",
           } as React.CSSProperties
         }
-        className="overflow-hidden rounded-3xl bg-[#2B2930]"
+        className="overflow-hidden rounded-3xl bg-[color:var(--m3-surface-high)]"
       >
         {items.map((anime) => (
           <SwiperSlide key={anime.seriesSlug}>
@@ -72,18 +77,17 @@ function BannerCarousel({
               to={pathFor(anime)}
               className="group relative block aspect-[4/5] overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D0BCFF] sm:aspect-[16/9] lg:aspect-[21/9]"
             >
-              <img
+              <Poster
                 src={anime.poster}
                 alt=""
-                referrerPolicy="no-referrer"
                 className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#141218] via-[#141218]/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--m3-surface)] via-[color:var(--m3-surface)]/40 to-transparent" />
 
               <div className="absolute inset-x-0 bottom-0 p-5 pb-11">
                 <div className="flex flex-wrap gap-2">
                   {anime.type && (
-                    <span className="rounded-full bg-[#141218]/60 px-3 py-1 text-xs font-medium text-[#EADDFF] backdrop-blur-sm">
+                    <span className="rounded-full bg-[color:var(--m3-surface)]/60 px-3 py-1 text-xs font-medium text-[#EADDFF] backdrop-blur-sm">
                       {anime.type}
                     </span>
                   )}
@@ -126,17 +130,16 @@ function PosterCard({
 }) {
   return (
     <Link to={to} className={`group block outline-none ${className}`}>
-      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-[#2B2930] group-focus-visible:ring-2 group-focus-visible:ring-[#D0BCFF]">
-        <img
+      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-[color:var(--m3-surface-high)] group-focus-visible:ring-2 group-focus-visible:ring-[#D0BCFF]">
+        <Poster
           src={poster}
           alt=""
           loading="lazy"
-          referrerPolicy="no-referrer"
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
         />
         <span className="absolute inset-0 transition-colors group-hover:bg-[#D0BCFF]/[0.08] group-active:bg-[#D0BCFF]/[0.12]" />
         {badge && (
-          <span className="absolute bottom-2 left-2 rounded-lg bg-[#141218]/80 px-2 py-0.5 text-xs font-medium text-[#EADDFF] backdrop-blur-sm">
+          <span className="absolute bottom-2 left-2 rounded-lg bg-[color:var(--m3-surface)]/80 px-2 py-0.5 text-xs font-medium text-[#EADDFF] backdrop-blur-sm">
             {badge}
           </span>
         )}
@@ -152,9 +155,9 @@ function PosterCard({
 function SkeletonCard({ className = "" }: { className?: string }) {
   return (
     <div className={className} aria-hidden="true">
-      <div className="aspect-[2/3] animate-pulse rounded-xl bg-[#2B2930] motion-reduce:animate-none" />
-      <div className="mt-2 h-4 w-11/12 animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
-      <div className="mt-1.5 h-3 w-1/3 animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
+      <div className="aspect-[2/3] animate-pulse rounded-xl bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
+      <div className="mt-2 h-4 w-11/12 animate-pulse rounded bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
+      <div className="mt-1.5 h-3 w-1/3 animate-pulse rounded bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
     </div>
   );
 }
@@ -218,6 +221,7 @@ const gridClass =
   "grid grid-cols-2 gap-x-3 gap-y-5 px-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5";
 
 export default function Home() {
+  const { logout } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Math.max(1, Number(searchParams.get("page")) || 1);
 
@@ -280,24 +284,28 @@ export default function Home() {
   const showLibrary = page === 1 && !error && library.length > 0;
 
   return (
-    <div className="min-h-screen bg-[#141218] pb-32 text-[#E6E0E9]">
-      <header className="sticky top-0 z-40 bg-[#141218]/90 pt-[env(safe-area-inset-top)] backdrop-blur">
+    <div className="min-h-screen bg-[color:var(--m3-surface)] pb-32 text-[#E6E0E9]">
+      <header className="sticky top-0 z-40 bg-[color:var(--m3-surface)]/90 pt-[env(safe-area-inset-top)] backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between pl-4 pr-2">
           <h1 className="text-[22px] font-medium leading-7 tracking-tight">BakaAnime</h1>
           <div className="flex items-center">
             <IconLink to="/search" label="Cari anime">
               <Search size={24} />
             </IconLink>
-            <IconLink to="/profile" label="Profil">
-              <User size={24} />
-            </IconLink>
+            <OverflowMenu
+              items={[
+                { label: "Profil", icon: <User size={19} />, to: "/profile" },
+                { label: "Pengaturan", icon: <Settings size={19} />, to: "/settings" },
+                { label: "Keluar", icon: <LogOut size={19} />, onClick: logout, danger: true },
+              ]}
+            />
           </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl">
         {error && (
-          <div className="mx-4 mt-4 flex items-center gap-3 rounded-2xl bg-[#2B2930] p-4">
+          <div className="mx-4 mt-4 flex items-center gap-3 rounded-2xl bg-[color:var(--m3-surface-high)] p-4">
             <p className="flex-1 text-sm text-[#CAC4D0]">{error}</p>
             <button
               onClick={() => setReloadKey((k) => k + 1)}
@@ -324,7 +332,7 @@ export default function Home() {
               ? Array.from({ length: 3 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-8 w-16 shrink-0 animate-pulse rounded-lg bg-[#2B2930] motion-reduce:animate-none"
+                    className="h-8 w-16 shrink-0 animate-pulse rounded-lg bg-[color:var(--m3-surface-high)] motion-reduce:animate-none"
                   />
                 ))
               : types.length > 1 &&

@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router";
 import { ArrowLeft, Search as SearchIcon, Telescope, X } from "lucide-react";
 import { searchAnime } from "../lib/api/anime";
 import type { AnimeItem } from "../types/anime";
+import Poster from "../components/Poster";
 
 
 const detailPath = (a: AnimeItem) => `/detail/${encodeURIComponent(a.seriesSlug)}`;
@@ -15,12 +16,11 @@ function ResultCard({ item }: { item: AnimeItem }) {
       className="group flex items-center gap-4 p-3 outline-none transition-colors active:bg-[#D0BCFF]/[0.10] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D0BCFF]"
     >
       {/* poster */}
-      <div className="relative aspect-[2/3] w-16 shrink-0 overflow-hidden rounded-xl bg-[#2B2930] shadow-md">
-        <img
+      <div className="relative aspect-[2/3] w-16 shrink-0 overflow-hidden rounded-xl bg-[color:var(--m3-surface-high)] shadow-md">
+        <Poster
           src={item.poster}
           alt=""
           loading="lazy"
-          referrerPolicy="no-referrer"
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
         />
       </div>
@@ -32,7 +32,7 @@ function ResultCard({ item }: { item: AnimeItem }) {
         </p>
         <div className="mt-2 flex flex-wrap gap-1.5">
           {item.type && (
-            <span className="rounded-full bg-[#2B2930] px-2.5 py-0.5 text-[11px] font-medium text-[#CAC4D0]">
+            <span className="rounded-full bg-[color:var(--m3-surface-high)] px-2.5 py-0.5 text-[11px] font-medium text-[#CAC4D0]">
               {item.type}
             </span>
           )}
@@ -58,11 +58,11 @@ function ResultCard({ item }: { item: AnimeItem }) {
 function SkeletonCard() {
   return (
     <div className="flex items-center gap-4 p-3" aria-hidden="true">
-      <div className="aspect-[2/3] w-16 shrink-0 animate-pulse rounded-xl bg-[#2B2930] motion-reduce:animate-none" />
+      <div className="aspect-[2/3] w-16 shrink-0 animate-pulse rounded-xl bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
       <div className="flex-1 space-y-2.5 py-0.5">
-        <div className="h-4 w-4/5 animate-pulse rounded-full bg-[#2B2930] motion-reduce:animate-none" />
-        <div className="h-3.5 w-3/5 animate-pulse rounded-full bg-[#2B2930] motion-reduce:animate-none" />
-        <div className="h-5 w-1/3 animate-pulse rounded-full bg-[#2B2930] motion-reduce:animate-none" />
+        <div className="h-4 w-4/5 animate-pulse rounded-full bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
+        <div className="h-3.5 w-3/5 animate-pulse rounded-full bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
+        <div className="h-5 w-1/3 animate-pulse rounded-full bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
       </div>
     </div>
   );
@@ -70,7 +70,7 @@ function SkeletonCard() {
 
 /* ── Divider ──────────────────────────────────────────────────── */
 function Divider() {
-  return <div className="mx-3 h-px bg-[#2B2930]" aria-hidden="true" />;
+  return <div className="mx-3 h-px bg-[color:var(--m3-surface-high)]" aria-hidden="true" />;
 }
 
 /* ── Main page ────────────────────────────────────────────────── */
@@ -147,10 +147,10 @@ export default function Search() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#141218] text-[#E6E0E9]">
+    <div className="flex min-h-screen flex-col bg-[color:var(--m3-surface)] text-[#E6E0E9]">
 
       {/* ── Top bar ── */}
-      <header className="sticky top-0 z-40 bg-[#141218] pt-[env(safe-area-inset-top)]">
+      <header className="sticky top-0 z-40 bg-[color:var(--m3-surface)] pt-[env(safe-area-inset-top)]">
         <div className="flex h-16 items-center gap-2 px-2">
 
           {/* back */}
@@ -179,7 +179,7 @@ export default function Search() {
               spellCheck={false}
               enterKeyHint="search"
               aria-label="Cari anime"
-              className="h-11 w-full rounded-2xl bg-[#2B2930] pl-[38px] pr-10 text-[15px] text-[#E6E0E9] placeholder:text-[#938F99] outline-none transition-shadow focus:ring-2 focus:ring-[#D0BCFF] [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
+              className="h-11 w-full rounded-2xl bg-[color:var(--m3-surface-high)] pl-[38px] pr-10 text-[15px] text-[#E6E0E9] placeholder:text-[#938F99] outline-none transition-shadow focus:ring-2 focus:ring-[#D0BCFF] [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
             />
             {inputValue && (
               <button
@@ -209,7 +209,7 @@ export default function Search() {
         {/* idle */}
         {!query && !loading && (
           <div className="flex flex-col items-center gap-4 px-6 pt-16 text-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-[28px] bg-[#2B2930]">
+            <div className="flex h-20 w-20 items-center justify-center rounded-[28px] bg-[color:var(--m3-surface-high)]">
               <Telescope size={36} className="text-[#D0BCFF]" strokeWidth={1.5} />
             </div>
             <div>
@@ -237,7 +237,7 @@ export default function Search() {
         {/* loading skeleton */}
         {loading && (
           <div className="mt-1 px-1">
-            <div className="overflow-hidden rounded-2xl bg-[#1C1B1F]">
+            <div className="overflow-hidden rounded-2xl bg-[color:var(--m3-surface-low)]">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i}>
                   {i > 0 && <Divider />}
@@ -250,7 +250,7 @@ export default function Search() {
 
         {/* error */}
         {!loading && error && (
-          <div className="mx-4 mt-6 rounded-2xl bg-[#2B2930] px-4 py-5">
+          <div className="mx-4 mt-6 rounded-2xl bg-[color:var(--m3-surface-high)] px-4 py-5">
             <p className="text-[13px] text-[#CAC4D0]">{error}</p>
           </div>
         )}
@@ -258,7 +258,7 @@ export default function Search() {
         {/* empty */}
         {!loading && empty && (
           <div className="flex flex-col items-center gap-3 px-6 pt-16 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-[20px] bg-[#2B2930]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-[20px] bg-[color:var(--m3-surface-high)]">
               <SearchIcon size={28} className="text-[#49454F]" strokeWidth={1.5} />
             </div>
             <p className="text-[15px] font-semibold text-[#E6E0E9]">Tidak ditemukan</p>
@@ -279,7 +279,7 @@ export default function Search() {
             </p>
 
             {/* result list card */}
-            <div className="mx-3 overflow-hidden rounded-2xl bg-[#1C1B1F]">
+            <div className="mx-3 overflow-hidden rounded-2xl bg-[color:var(--m3-surface-low)]">
               {results.map((item, i) => (
                 <div key={item.seriesSlug}>
                   {i > 0 && <Divider />}

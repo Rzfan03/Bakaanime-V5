@@ -28,3 +28,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Signing keystore (rahasia)
+bakaanime-release.keystore
+keystore.b64

@@ -1,12 +1,9 @@
 import type { VercelRequest } from "@vercel/node";
 import { timingSafeEqual } from "node:crypto";
 import { SignJWT, jwtVerify } from "jose";
-import { OAuth2Client } from "google-auth-library";
 import { sql } from "./db.js";
 
 const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
-const googleClientId = process.env.GOOGLE_CLIENT_ID ?? "";
-const google = new OAuth2Client(googleClientId);
 
 export type User = {
   id: string;
@@ -17,6 +14,7 @@ export type User = {
   bio: string;
   verified: boolean;
   role: string;
+  font: string;
 };
 
 export async function createToken(userId: string): Promise<string> {
@@ -34,33 +32,6 @@ async function userIdFromToken(token: string): Promise<string | null> {
   } catch {
     return null;
   }
-}
-
-export async function verifyGoogleCredential(credential: string) {
-  const ticket = await google.verifyIdToken({
-    idToken: credential,
-    audience: googleClientId,
-  });
-  const p = ticket.getPayload();
-  if (!p?.sub || !p.email) throw new Error("Token Google tidak valid.");
-  return { sub: p.sub, email: p.email, name: p.name ?? p.email, picture: p.picture };
-}
-
-export async function upsertUser(profile: {
-  sub: string;
-  email: string;
-  name: string;
-  picture?: string;
-}): Promise<User> {
-  const rows = (await sql`
-    insert into users (google_sub, email, name, avatar)
-    values (${profile.sub}, ${profile.email}, ${profile.name}, ${profile.picture ?? null})
-    on conflict (google_sub) do update
-      set email = excluded.email,
-          name  = excluded.name
-    returning id, email, name, avatar, banner, bio, verified, role
-  `) as User[];
-  return rows[0];
 }
 
 function safeEqual(a: string, b: string): boolean {
@@ -84,7 +55,7 @@ export async function loginWithKey(key: string): Promise<User> {
       values (${"key:" + id}, ${id + "@key.local"}, ${label || "Developer"}, true, ${role})
       on conflict (google_sub) do update
         set verified = true, role = excluded.role, name = excluded.name
-      returning id, email, name, avatar, banner, bio, verified, role
+      returning id, email, name, avatar, banner, bio, verified, role, font
     `) as User[];
     return rows[0];
   }
@@ -96,14 +67,14 @@ export async function loginWithKey(key: string): Promise<User> {
     insert into users (google_sub, email, name, verified, role)
     values ('dev', 'dev@bakaanime.local', 'Developer', true, 'dev')
     on conflict (google_sub) do update set verified = true, role = 'dev'
-    returning id, email, name, avatar, banner, bio, verified, role
+    returning id, email, name, avatar, banner, bio, verified, role, font
   `) as User[];
   return rows[0];
 }
 
 async function userById(id: string): Promise<User | null> {
   const rows = (await sql`
-    select id, email, name, avatar, banner, bio, verified, role from users where id = ${id}
+    select id, email, name, avatar, banner, bio, verified, role, font from users where id = ${id}
   `) as User[];
   return rows[0] ?? null;
 }

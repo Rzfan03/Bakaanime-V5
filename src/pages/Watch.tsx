@@ -11,10 +11,15 @@ import {
   Heart,
   RefreshCw,
 } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { describeError, getDetail, getEpisode, getHome } from "../lib/api/anime";
-import { markWatched, readLibrary, writeLibrary } from "../lib/storage";
-import type { LibraryItem } from "../lib/storage";
+import { markWatched, readFavorites } from "../lib/storage";
+import type { FavoriteItem } from "../lib/storage";
+import { backend } from "../lib/api/backend";
+import { addFavorite, removeFavorite } from "../lib/favorites";
 import type { AnimeDetail, AnimeItem, EpisodeDetail } from "../types/anime";
+import Poster from "../components/Poster";
 
 const EPISODE_LIMIT = 25;
 
@@ -84,16 +89,15 @@ function RecCard({ item }: { item: AnimeItem }) {
       to={detailPath(item.seriesSlug)}
       className="group block w-28 shrink-0 snap-start outline-none"
     >
-      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-[#2B2930] group-focus-visible:ring-2 group-focus-visible:ring-[#D0BCFF]">
-        <img
+      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-[color:var(--m3-surface-high)] group-focus-visible:ring-2 group-focus-visible:ring-[#D0BCFF]">
+        <Poster
           src={item.poster}
           alt=""
           loading="lazy"
-          referrerPolicy="no-referrer"
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
         />
         {item.episode && (
-          <span className="absolute bottom-2 left-2 rounded-full bg-[#141218]/80 px-2 py-0.5 text-xs font-medium text-[#EADDFF] backdrop-blur-sm">
+          <span className="absolute bottom-2 left-2 rounded-full bg-[color:var(--m3-surface)]/80 px-2 py-0.5 text-xs font-medium text-[#EADDFF] backdrop-blur-sm">
             {item.episode}
           </span>
         )}
@@ -109,18 +113,18 @@ function InfoSkeleton() {
   return (
     <div aria-hidden="true">
       <div className="mt-6 space-y-2 px-4">
-        <div className="h-5 w-24 animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
-        <div className="h-4 w-full animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
-        <div className="h-4 w-full animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
-        <div className="h-4 w-2/3 animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
+        <div className="h-5 w-24 animate-pulse rounded bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
+        <div className="h-4 w-full animate-pulse rounded bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
+        <div className="h-4 w-full animate-pulse rounded bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
+        <div className="h-4 w-2/3 animate-pulse rounded bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
       </div>
       <div className="mt-6 px-4">
-        <div className="mb-3 h-5 w-32 animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
+        <div className="mb-3 h-5 w-32 animate-pulse rounded bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
         <div className="grid grid-cols-5 gap-2 sm:grid-cols-8">
           {Array.from({ length: 10 }).map((_, i) => (
             <div
               key={i}
-              className="h-10 animate-pulse rounded-full bg-[#2B2930] motion-reduce:animate-none"
+              className="h-10 animate-pulse rounded-full bg-[color:var(--m3-surface-high)] motion-reduce:animate-none"
             />
           ))}
         </div>
@@ -138,7 +142,7 @@ export default function Watch() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [recs, setRecs] = useState<AnimeItem[]>([]);
   const [watched, setWatched] = useState<string[]>([]);
-  const [library, setLibrary] = useState<LibraryItem[]>([]);
+  const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -146,11 +150,41 @@ export default function Watch() {
   const [showAll, setShowAll] = useState(false);
   const [plotOpen, setPlotOpen] = useState(false);
   const [toast, setToast] = useState("");
-
   const downloadRef = useRef<HTMLElement | null>(null);
 
+  /* ── Orientation: unlock landscape saat fullscreen, lock portrait lagi saat keluar ── */
   useEffect(() => {
-    setLibrary(readLibrary());
+    if (!Capacitor.isNativePlatform()) return;
+
+    const onFsChange = async () => {
+      const isFs = !!document.fullscreenElement;
+      try {
+        if (isFs) {
+          await ScreenOrientation.unlock();
+        } else {
+          await ScreenOrientation.lock({ orientation: "portrait" });
+        }
+      } catch {
+        /* plugin belum ready / web */
+      }
+    };
+
+    document.addEventListener("fullscreenchange", onFsChange);
+    document.addEventListener("webkitfullscreenchange", onFsChange as EventListener);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", onFsChange);
+      document.removeEventListener("webkitfullscreenchange", onFsChange as EventListener);
+      // pastikan kembali portrait saat keluar halaman Watch
+      void ScreenOrientation.lock({ orientation: "portrait" }).catch(() => {});
+    };
+  }, []);
+
+  useEffect(() => {
+    void backend
+      .getFavorites()
+      .then((res) => setFavorites(res.items))
+      .catch(() => setFavorites(readFavorites()));
   }, []);
 
   useEffect(() => {
@@ -162,7 +196,9 @@ export default function Watch() {
       .catch(() => {
         if (!cancelled) setRecs([]);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -171,13 +207,19 @@ export default function Watch() {
     setError(null);
     setStreamIndex(0);
     window.scrollTo({ top: 0 });
-
     getEpisode(slug)
-      .then((res) => { if (!cancelled) setEpisode(res); })
-      .catch((e) => { if (!cancelled) setError(describeError(e)); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-
-    return () => { cancelled = true; };
+      .then((res) => {
+        if (!cancelled) setEpisode(res);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(describeError(e));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [slug, reloadKey]);
 
   const animeSlug = episode?.animeSlug;
@@ -189,13 +231,19 @@ export default function Watch() {
     setDetailLoading(true);
     setPlotOpen(false);
     setShowAll(false);
-
     getDetail(animeSlug)
-      .then((res) => { if (!cancelled) setDetail(res); })
-      .catch(() => { if (!cancelled) setDetail(null); })
-      .finally(() => { if (!cancelled) setDetailLoading(false); });
-
-    return () => { cancelled = true; };
+      .then((res) => {
+        if (!cancelled) setDetail(res);
+      })
+      .catch(() => {
+        if (!cancelled) setDetail(null);
+      })
+      .finally(() => {
+        if (!cancelled) setDetailLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [animeSlug]);
 
   useEffect(() => {
@@ -212,12 +260,13 @@ export default function Watch() {
   const episodes = detail?.episodes ?? [];
   const index = episodes.findIndex((e) => e.slug === slug);
   const prev = index > 0 ? episodes[index - 1] : undefined;
-  const next = index >= 0 && index < episodes.length - 1 ? episodes[index + 1] : undefined;
-
+  const next =
+    index >= 0 && index < episodes.length - 1 ? episodes[index + 1] : undefined;
   const forceAll = index >= EPISODE_LIMIT;
   const expandedAll = showAll || forceAll;
-  const visibleEpisodes = expandedAll ? episodes : episodes.slice(0, EPISODE_LIMIT);
-
+  const visibleEpisodes = expandedAll
+    ? episodes
+    : episodes.slice(0, EPISODE_LIMIT);
   const stream = episode?.streams[streamIndex];
   const title = episode?.title.replace(/\s*Subtitle Indonesia$/i, "") ?? "";
   const metaLine = detail
@@ -225,18 +274,34 @@ export default function Watch() {
         .filter(Boolean)
         .join(" • ")
     : "";
-
-  const inLibrary = !!animeSlug && library.some((l) => l.slug === animeSlug);
+  const isFav = !!animeSlug && favorites.some((f) => f.slug === animeSlug);
   const otherRecs = recs.filter((r) => r.seriesSlug !== animeSlug);
 
-  const toggleLibrary = () => {
+  const toggleFav = async () => {
     if (!detail || !animeSlug) return;
-    const updated = inLibrary
-      ? library.filter((l) => l.slug !== animeSlug)
-      : [{ slug: animeSlug, title: detail.title, poster: detail.poster }, ...library];
-    setLibrary(updated);
-    writeLibrary(updated);
-    setToast(inLibrary ? "Dihapus dari library" : "Ditambahkan ke library");
+    const wasFav = isFav;
+    const item = {
+      slug: animeSlug,
+      title: detail.title,
+      poster: detail.poster,
+    };
+    setFavorites((prev) =>
+      wasFav ? prev.filter((f) => f.slug !== animeSlug) : [item, ...prev]
+    );
+    try {
+      if (wasFav) await removeFavorite(animeSlug);
+      else await addFavorite(item);
+      setToast(
+        wasFav
+          ? "Dihapus dari favorit"
+          : "Ditambahkan ke favorit dan library"
+      );
+    } catch {
+      setFavorites((prev) =>
+        wasFav ? [item, ...prev] : prev.filter((f) => f.slug !== animeSlug)
+      );
+      setToast("Gagal memperbarui favorit");
+    }
   };
 
   const scrollToDownloads = () =>
@@ -246,8 +311,8 @@ export default function Watch() {
     "flex h-10 w-10 items-center justify-center rounded-full border border-[#49454F] text-[#E6E0E9] outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] focus-visible:ring-2 focus-visible:ring-[#D0BCFF] disabled:opacity-40";
 
   return (
-    <div className="min-h-screen bg-[#141218] pb-24 text-[#E6E0E9]">
-      <header className="sticky top-0 z-40 bg-[#141218]/90 pt-[env(safe-area-inset-top)] backdrop-blur">
+    <div className="min-h-screen bg-[color:var(--m3-surface)] pb-24 text-[#E6E0E9]">
+      <header className="sticky top-0 z-40 bg-[color:var(--m3-surface)]/90 pt-[env(safe-area-inset-top)] backdrop-blur">
         <div className="mx-auto flex h-14 max-w-3xl items-center gap-1 px-2">
           <button
             onClick={() => navigate(-1)}
@@ -267,7 +332,7 @@ export default function Watch() {
         <div className="px-4">
           <div className="aspect-video w-full overflow-hidden rounded-2xl bg-black">
             {loading && (
-              <div className="h-full w-full animate-pulse bg-[#2B2930] motion-reduce:animate-none" />
+              <div className="h-full w-full animate-pulse bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
             )}
             {!loading && stream && (
               <iframe
@@ -288,7 +353,7 @@ export default function Watch() {
         </div>
 
         {!loading && error && (
-          <div className="mx-4 mt-4 flex flex-col items-start gap-3 rounded-2xl bg-[#2B2930] p-4">
+          <div className="mx-4 mt-4 flex flex-col items-start gap-3 rounded-2xl bg-[color:var(--m3-surface-high)] p-4">
             <p className="text-sm text-[#CAC4D0]">{error}</p>
             <button
               onClick={() => setReloadKey((k) => k + 1)}
@@ -302,7 +367,6 @@ export default function Watch() {
 
         {!loading && !error && episode && (
           <>
-            {/* Stream selector */}
             {episode.streams.length > 1 && (
               <section
                 aria-label="Sumber video"
@@ -325,21 +389,25 @@ export default function Watch() {
               </section>
             )}
 
-            {/* Judul + tombol */}
             <section className="flex items-start gap-3 px-4 pt-4">
               <div className="min-w-0 flex-1">
                 <h2 className="text-[22px] font-medium leading-7">{title}</h2>
-                {metaLine && <p className="mt-1 text-sm text-[#CAC4D0]">{metaLine}</p>}
+                {metaLine && (
+                  <p className="mt-1 text-sm text-[#CAC4D0]">{metaLine}</p>
+                )}
               </div>
               <div className="flex shrink-0 gap-2">
                 <button
-                  onClick={toggleLibrary}
+                  onClick={() => void toggleFav()}
                   disabled={!detail}
-                  aria-label={inLibrary ? "Hapus dari library" : "Tambah ke library"}
-                  aria-pressed={inLibrary}
+                  aria-label={isFav ? "Hapus dari favorit" : "Tambah ke favorit"}
+                  aria-pressed={isFav}
                   className={circleButton}
                 >
-                  <Heart size={20} className={inLibrary ? "fill-[#D0BCFF] text-[#D0BCFF]" : ""} />
+                  <Heart
+                    size={20}
+                    className={isFav ? "fill-[#D0BCFF] text-[#D0BCFF]" : ""}
+                  />
                 </button>
                 {episode.downloads.length > 0 && (
                   <button
@@ -353,14 +421,15 @@ export default function Watch() {
               </div>
             </section>
 
-            {/* Sinopsis + badge episode (skeleton saat detail loading) */}
             {detailLoading && !detail ? (
               <InfoSkeleton />
             ) : (
               <>
                 {detail?.synopsis && (
                   <section className="mt-4 px-4">
-                    <h2 className="text-base font-semibold leading-6 text-[#E6E0E9]">Sinopsis</h2>
+                    <h2 className="text-base font-semibold leading-6 text-[#E6E0E9]">
+                      Sinopsis
+                    </h2>
                     <p
                       className={`mt-1.5 whitespace-pre-line text-sm leading-6 text-[#CAC4D0] ${
                         plotOpen ? "" : "line-clamp-4"
@@ -376,7 +445,9 @@ export default function Watch() {
                       {plotOpen ? "Ringkas" : "Selengkapnya"}
                       <ChevronDown
                         size={16}
-                        className={`transition-transform motion-reduce:transition-none ${plotOpen ? "rotate-180" : ""}`}
+                        className={`transition-transform motion-reduce:transition-none ${
+                          plotOpen ? "rotate-180" : ""
+                        }`}
                       />
                     </button>
                   </section>
@@ -412,7 +483,7 @@ export default function Watch() {
                                 current
                                   ? "bg-[#D0BCFF] text-[#381E72]"
                                   : seen
-                                    ? "bg-[#2B2930] text-[#938F99] hover:bg-[#35323B]"
+                                    ? "bg-[color:var(--m3-surface-high)] text-[#938F99] hover:bg-[#35323B]"
                                     : "border border-[#49454F] text-[#EADDFF] hover:bg-[#D0BCFF]/[0.08]"
                               }`}
                             >
@@ -429,10 +500,14 @@ export default function Watch() {
                         aria-expanded={showAll}
                         className="mx-4 mt-2 flex h-10 items-center gap-1 rounded-full pr-3 text-sm font-medium text-[#D0BCFF] outline-none focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
                       >
-                        {showAll ? "Ringkas" : `Lihat semua ${episodes.length} episode`}
+                        {showAll
+                          ? "Ringkas"
+                          : `Lihat semua ${episodes.length} episode`}
                         <ChevronDown
                           size={18}
-                          className={`transition-transform motion-reduce:transition-none ${showAll ? "rotate-180" : ""}`}
+                          className={`transition-transform motion-reduce:transition-none ${
+                            showAll ? "rotate-180" : ""
+                          }`}
                         />
                       </button>
                     )}
@@ -441,7 +516,6 @@ export default function Watch() {
               </>
             )}
 
-            {/* Nav prev/next */}
             <nav aria-label="Episode" className="mt-6 flex gap-3 px-4">
               <NavButton to={prev ? watchPath(prev.slug) : undefined}>
                 <ChevronLeft size={18} />
@@ -453,7 +527,6 @@ export default function Watch() {
               </NavButton>
             </nav>
 
-            {/* Genre */}
             {detail && detail.genres.length > 0 && (
               <section
                 aria-label="Genre"
@@ -470,7 +543,6 @@ export default function Watch() {
               </section>
             )}
 
-            {/* Download */}
             {episode.downloads.length > 0 && (
               <section ref={downloadRef} className="mt-6 scroll-mt-20">
                 <SectionTitle title="Download" />
@@ -491,7 +563,6 @@ export default function Watch() {
               </section>
             )}
 
-            {/* Rilisan lainnya */}
             {otherRecs.length > 0 && (
               <section className="mt-6">
                 <SectionTitle

@@ -1,5 +1,4 @@
 import axios from "axios";
-import { BASE } from "./backend";
 import type {
   AnimeDetail,
   AnimeItem,
@@ -9,7 +8,7 @@ import type {
 } from "../../types/anime";
 
 const api = axios.create({
-  baseURL: "https://www.sankavollerei.web.id/anime/anoboy",
+  baseURL: "https://www.sankavollerei.web.id/anime/animekuindo",
   timeout: 20000,
 });
 
@@ -40,19 +39,6 @@ const cleanTitle = (t: string): string =>
 const toGenre = (g: any): string =>
   typeof g === "string" ? g : pickString(g, ["name", "title"]);
 
-// Sebagian ISP (mis. XL) memblokir DNS anoboy.be → gambar tak tampil di WebView.
-// Lewatkan lewat proxy sendiri (api/img) yang di-cache di edge Vercel.
-const proxied = (url: string): string => {
-  if (!url) return url;
-  try {
-    const { hostname, pathname, search } = new URL(url);
-    if (!/(^|\.)anoboy\.be$/i.test(hostname)) return url;
-    return `${BASE}/img?u=${encodeURIComponent(hostname + pathname + search)}`;
-  } catch {
-    return url;
-  }
-};
-
 const toItem = (a: any): AnimeItem => {
   const slug = normSlug(pickString(a, ["slug", "id"]));
   const episode = pickString(a, ["episode"]);
@@ -60,7 +46,7 @@ const toItem = (a: any): AnimeItem => {
     title: cleanTitle(pickString(a, ["title", "name"])),
     slug,
     seriesSlug: seriesSlugOf(slug),
-    poster: proxied(pickString(a, ["poster", "image", "thumbnail"])),
+    poster: pickString(a, ["poster", "image", "thumbnail"]),
     episode,
     type: pickString(a, ["type"]),
     isEpisode: /^ep(isode)?\s*\d/i.test(episode),
@@ -74,9 +60,12 @@ const fetchList = async (
 ): Promise<AnimeListResult> => {
   const res = await api.get(path, { params: { page, ...params } });
 
+  const data = res.data?.data;
+  const rows = Array.isArray(data) ? data : (data?.latest ?? res.data?.anime_list ?? []);
+
   const seen = new Set<string>();
   const items: AnimeItem[] = [];
-  for (const raw of toList(res.data?.anime_list ?? res.data?.data)) {
+  for (const raw of toList(rows)) {
     const item = toItem(raw);
     if (!item.slug || seen.has(item.seriesSlug)) continue;
     seen.add(item.seriesSlug);
@@ -87,9 +76,19 @@ const fetchList = async (
   return {
     items,
     pagination: {
-      currentPage: Number(p?.currentPage) || page,
-      hasPrev: typeof p?.hasPrev === "boolean" ? p.hasPrev : page > 1,
-      hasNext: typeof p?.hasNext === "boolean" ? p.hasNext : items.length > 0,
+      currentPage: Number(p?.currentPage ?? p?.current_page) || page,
+      hasPrev:
+        typeof p?.hasPrev === "boolean"
+          ? p.hasPrev
+          : typeof p?.has_prev === "boolean"
+            ? p.has_prev
+            : page > 1,
+      hasNext:
+        typeof p?.hasNext === "boolean"
+          ? p.hasNext
+          : typeof p?.has_next === "boolean"
+            ? p.has_next
+            : items.length > 0,
     },
   };
 };
@@ -100,15 +99,7 @@ export const searchAnime = (keyword: string, page = 1) =>
   fetchList(`/search/${encodeURIComponent(keyword)}`, page);
 
 export const getByGenre = (slug: string, page = 1) =>
-  fetchList(`/genre/${encodeURIComponent(slug)}`, page);
-
-export const getAzList = (show = "A", page = 1) =>
-  fetchList("/az-list", page, { show });
-
-export const getAnimeList = (
-  filters: { status?: string; type?: string; order?: string },
-  page = 1
-) => fetchList("/list", page, filters as Record<string, string>);
+  fetchList(`/genres/${encodeURIComponent(slug)}`, page);
 
 const toEpisode = (e: any): Episode => {
   const slug = normSlug(pickString(e, ["slug", "id"]));
@@ -132,15 +123,16 @@ export const normalizeDetail = (raw: any): AnimeDetail => {
 
   const detail: AnimeDetail = {
     title: pickString(d, ["title", "name"]),
-    poster: proxied(pickString(d, ["poster", "image", "thumbnail"])),
+    poster: pickString(d, ["poster", "image", "thumbnail"]),
     synopsis: pickString(d, ["synopsis", "description"]),
     status: pickString(info, ["status"]),
-    type: pickString(info, ["type"]),
+    type: pickString(info, ["type", "tipe"]),
     studio: pickString(info, ["studio"]) || undefined,
     season: pickString(info, ["season"]) || undefined,
-    released: pickString(info, ["released"]) || undefined,
-    duration: pickString(info, ["duration"]) || undefined,
-    totalEpisode: pickString(info, ["episodes", "total_episode"]) || undefined,
+    released: pickString(info, ["released", "dirilis"]) || undefined,
+    duration: pickString(info, ["duration", "durasi"]) || undefined,
+    totalEpisode:
+      pickString(info, ["episodes", "total_episode", "episode"]) || undefined,
     genres: toList(d.genres).map(toGenre).filter(Boolean),
     episodes,
   };
@@ -154,7 +146,7 @@ export const normalizeDetail = (raw: any): AnimeDetail => {
 };
 
 export const getDetail = async (slug: string): Promise<AnimeDetail> => {
-  const res = await api.get(`/anime/${encodeURIComponent(slug)}`);
+  const res = await api.get(`/detail/${encodeURIComponent(slug)}`);
   return normalizeDetail(res.data);
 };
 
@@ -164,7 +156,7 @@ export const normalizeEpisode = (raw: any, episodeSlug = ""): EpisodeDetail => {
   const seen = new Set<string>();
   const streams = toList(d.streams)
     .map((s) => ({
-      name: pickString(s, ["name", "label", "title"]) || "Stream",
+      name: pickString(s, ["server", "name", "label", "title"]) || "Stream",
       url: pickString(s, ["url", "link", "src"]),
     }))
     .filter((s) => {

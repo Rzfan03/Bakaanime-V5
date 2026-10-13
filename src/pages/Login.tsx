@@ -1,61 +1,123 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { ArrowRight, Loader2 } from "lucide-react";
+import { useAuth as useClerkAuth, useClerk } from "@clerk/react";
 import { useAuth } from "../lib/auth";
-import GoogleSignIn from "../components/GoogleSignIn";
 
-function errMessage(e: unknown): string {
-  const msg = e instanceof Error ? e.message : "";
-  if (!msg || msg === "invalid_key") return "Key tidak valid. Coba lagi.";
-  return msg;
+type ClerkErrorLike = { errors?: { longMessage?: string; message?: string }[]; message?: string };
+
+const row =
+  "flex h-14 w-full items-center bg-[color:var(--m3-surface-low)] text-[15px] font-medium text-[#E6E0E9] outline-none transition-colors hover:bg-[color:var(--m3-surface-high)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D0BCFF]";
+
+function errText(e: unknown): string {
+  const c = e as ClerkErrorLike;
+  return (
+    c?.errors?.[0]?.longMessage ??
+    c?.errors?.[0]?.message ??
+    (e instanceof Error ? e.message : "Terjadi kesalahan. Coba lagi.")
+  );
 }
 
 export default function Login() {
-  const { user, loading: authLoading, loginWithKey } = useAuth();
+  const { user, loading: authLoading, loginWithKey, refresh, exchange, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from ?? "/";
 
-  const [keyMode, setKeyMode] = useState(false);
+  const clerk = useClerk();
+  const { isSignedIn } = useClerkAuth();
+
+  const [panel, setPanel] = useState<"none" | "key">("none");
   const [key, setKey] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [busyGoogle, setBusyGoogle] = useState(false);
+  const [busyKey, setBusyKey] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (!authLoading && user) navigate(from, { replace: true });
   }, [user, authLoading, navigate, from]);
 
-  const submit = async (e: React.FormEvent) => {
+  // Clerk sudah sign in tapi JWT kita belum ada → exchange otomatis
+  // Kalau exchange gagal → logout Clerk biar bersih
+  useEffect(() => {
+    if (isSignedIn && !authLoading && !user) {
+      exchange().catch(() => {
+        // Exchange gagal (mis. stale session) → paksa logout Clerk
+        logout();
+      });
+    }
+  }, [isSignedIn, authLoading, user, exchange, logout]);
+
+  const google = async () => {
+    if (busyGoogle || !clerk.loaded || !clerk.client) return;
+    setBusyGoogle(true);
+    setError("");
+    try {
+      // Kalau sudah signed in di Clerk → exchange dulu, tidak perlu OAuth lagi
+      if (isSignedIn) {
+        await exchange();
+        return;
+      }
+      // Sign out dulu kalau ada stale session yang tidak terdeteksi isSignedIn
+      await clerk.signOut({ redirectUrl: undefined });
+      await clerk.client.signIn.authenticateWithRedirect({
+        strategy: "oauth_google",
+        redirectUrl: window.location.origin + "/sso-callback",
+        redirectUrlComplete: from,
+      });
+    } catch (err) {
+      setError(errText(err));
+      setBusyGoogle(false);
+    }
+  };
+
+  const submitKey = async (e: React.FormEvent) => {
     e.preventDefault();
     const value = key.trim();
-    if (!value || busy) return;
-    setBusy(true);
+    if (!value || busyKey) return;
+    setBusyKey(true);
     setError("");
     try {
       await loginWithKey(value);
     } catch (err) {
-      setError(errMessage(err));
+      setError(errText(err));
     } finally {
-      setBusy(false);
+      setBusyKey(false);
     }
   };
 
-  const row =
-    "flex h-14 w-full items-center bg-[#1C1B1F] text-[15px] font-medium text-[#E6E0E9] outline-none transition-colors hover:bg-[#2B2930] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D0BCFF]";
+  const openPanel = (p: "key") => {
+    setPanel((cur) => (cur === p ? "none" : p));
+    setError("");
+  };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#141218] text-[#E6E0E9]">
+    <div className="flex min-h-screen flex-col bg-[color:var(--m3-surface)] text-[#E6E0E9]">
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 pb-16">
         <h1 className="text-left text-[28px] font-bold leading-tight">Masuk</h1>
         <p className="mt-2 text-left text-[14px] leading-6 text-[#938F99]">
           Masuk untuk menyinkronkan profil, favorit, dan komentar kamu.
         </p>
 
-        <div className="mt-8">
-          {keyMode ? (
+        <div className="mt-8 overflow-hidden rounded-3xl">
+          <button
+            type="button"
+            onClick={google}
+            disabled={busyGoogle || !clerk.loaded || !clerk.client}
+            className={`${row} justify-center gap-3 disabled:opacity-60`}
+          >
+            {busyGoogle ? (
+              <Loader2 size={18} className="animate-spin motion-reduce:animate-none" />
+            ) : null}
+            Masuk dengan Google
+          </button>
+
+          <div className="h-px bg-[color:var(--m3-surface-high)]" />
+
+          {panel === "key" ? (
             <form
-              onSubmit={submit}
-              className="flex h-14 items-center gap-2 rounded-t-3xl bg-[#1C1B1F] px-4 transition-colors focus-within:bg-[#2B2930]"
+              onSubmit={submitKey}
+              className="flex h-14 items-center gap-2 bg-[color:var(--m3-surface-low)] px-4 transition-colors focus-within:bg-[color:var(--m3-surface-high)]"
             >
               <input
                 autoFocus
@@ -68,11 +130,11 @@ export default function Login() {
               />
               <button
                 type="submit"
-                disabled={!key.trim() || busy}
+                disabled={!key.trim() || busyKey}
                 aria-label="Masuk"
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#D0BCFF] text-[#381E72] outline-none transition-colors hover:bg-[#DCCBFF] focus-visible:ring-2 focus-visible:ring-[#EADDFF] disabled:opacity-40"
               >
-                {busy ? (
+                {busyKey ? (
                   <Loader2 size={17} className="animate-spin motion-reduce:animate-none" />
                 ) : (
                   <ArrowRight size={18} />
@@ -80,17 +142,24 @@ export default function Login() {
               </button>
             </form>
           ) : (
-            <button type="button" onClick={() => setKeyMode(true)} className={`${row} justify-center rounded-t-3xl`}>
+            <button type="button" onClick={() => openPanel("key")} className={`${row} justify-center`}>
               Masuk dengan Key
             </button>
           )}
-
-          <div className="h-px bg-[#2B2930]" />
-
-          <GoogleSignIn className={`${row} justify-center rounded-b-3xl`} />
         </div>
 
         {error && <p className="mt-3 text-left text-[13px] text-[#F2B8B8]">{error}</p>}
+
+        {/* Tombol reset muncul kalau stuck dengan stale Clerk session */}
+        {isSignedIn && !user && (
+          <button
+            type="button"
+            onClick={logout}
+            className="mt-4 text-[12px] text-[#49454F] underline hover:text-[#938F99]"
+          >
+            Reset session
+          </button>
+        )}
       </main>
     </div>
   );

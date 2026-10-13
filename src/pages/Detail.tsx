@@ -15,9 +15,12 @@ import {
 } from "lucide-react";
 import { describeError, getDetail } from "../lib/api/anime";
 import Comments from "../components/Comments";
-import { readLibrary, readWatched, writeLibrary } from "../lib/storage";
-import type { LibraryItem } from "../lib/storage";
+import { readFavorites, readWatched } from "../lib/storage";
+import { addFavorite, removeFavorite } from "../lib/favorites";
+import { backend } from "../lib/api/backend";
+import { useAuth } from "../lib/auth";
 import type { AnimeDetail, Episode } from "../types/anime";
+import Poster from "../components/Poster";
 
 const EPISODE_PREVIEW = 8;
 
@@ -68,7 +71,7 @@ function EpisodeItem({ episode, watched }: { episode: Episode; watched: boolean 
         to={watchPath(episode.slug)}
         className="flex items-center gap-3 rounded-2xl px-3 py-2 outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
       >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2B2930] text-sm font-medium text-[#EADDFF]">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color:var(--m3-surface-high)] text-sm font-medium text-[#EADDFF]">
           {episode.number || "•"}
         </span>
         <span className="min-w-0 flex-1">
@@ -93,23 +96,23 @@ function DetailSkeleton() {
   return (
     <div aria-hidden="true" className="px-4 pt-6">
       <div className="flex gap-4">
-        <div className="aspect-[2/3] w-28 shrink-0 animate-pulse rounded-xl bg-[#2B2930] motion-reduce:animate-none" />
+        <div className="aspect-[2/3] w-28 shrink-0 animate-pulse rounded-xl bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
         <div className="flex-1 space-y-3 pt-2">
-          <div className="h-6 w-4/5 animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
-          <div className="h-4 w-1/2 animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
-          <div className="h-4 w-2/3 animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
+          <div className="h-6 w-4/5 animate-pulse rounded bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
+          <div className="h-4 w-1/2 animate-pulse rounded bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
+          <div className="h-4 w-2/3 animate-pulse rounded bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
         </div>
       </div>
       <div className="mt-6 grid grid-cols-4 gap-2">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-16 animate-pulse rounded-2xl bg-[#2B2930] motion-reduce:animate-none" />
+          <div key={i} className="h-16 animate-pulse rounded-2xl bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
         ))}
       </div>
-      <div className="mt-4 h-12 animate-pulse rounded-full bg-[#2B2930] motion-reduce:animate-none" />
+      <div className="mt-4 h-12 animate-pulse rounded-full bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
       <div className="mt-6 space-y-2">
-        <div className="h-4 w-full animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
-        <div className="h-4 w-full animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
-        <div className="h-4 w-2/3 animate-pulse rounded bg-[#2B2930] motion-reduce:animate-none" />
+        <div className="h-4 w-full animate-pulse rounded bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
+        <div className="h-4 w-full animate-pulse rounded bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
+        <div className="h-4 w-2/3 animate-pulse rounded bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
       </div>
     </div>
   );
@@ -118,22 +121,31 @@ function DetailSkeleton() {
 export default function Detail() {
   const { slug = "" } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [detail, setDetail] = useState<AnimeDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const [library, setLibrary] = useState<LibraryItem[]>([]);
+  const [isFav, setIsFav] = useState(false);
+  const [favBusy, setFavBusy] = useState(false);
   const [watched, setWatched] = useState<string[]>([]);
   const [expanded, setExpanded] = useState(false);
   const [episodesExpanded, setEpisodesExpanded] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [toast, setToast] = useState("");
 
+  // status favorit dari backend (kalau login) atau localStorage (fallback)
   useEffect(() => {
-    setLibrary(readLibrary());
-  }, []);
+    if (user) {
+      void backend.getFavorites().then((res) => {
+        setIsFav(res.items.some((i) => i.slug === slug));
+      }).catch(() => {});
+    } else {
+      setIsFav(readFavorites().some((i) => i.slug === slug));
+    }
+  }, [slug, user]);
 
   useEffect(() => {
     setWatched(readWatched(slug));
@@ -176,16 +188,22 @@ export default function Detail() {
     return () => clearTimeout(t);
   }, [toast]);
 
-  const inLibrary = library.some((l) => l.slug === slug);
-
-  const toggleLibrary = () => {
-    if (!detail) return;
-    const next = inLibrary
-      ? library.filter((l) => l.slug !== slug)
-      : [{ slug, title: detail.title, poster: detail.poster }, ...library];
-    setLibrary(next);
-    writeLibrary(next);
-    setToast(inLibrary ? "Dihapus dari library" : "Ditambahkan ke library");
+  // favorit = masuk ke Library DAN tab Favorit di profil sekaligus
+  const toggleFav = async () => {
+    if (!detail || favBusy) return;
+    setFavBusy(true);
+    const wasIn = isFav;
+    setIsFav(!wasIn); // optimistic
+    try {
+      if (wasIn) await removeFavorite(slug);
+      else await addFavorite({ slug, title: detail.title, poster: detail.poster });
+      setToast(wasIn ? "Dihapus dari favorit" : "Ditambahkan ke favorit dan library");
+    } catch {
+      setIsFav(wasIn); // rollback
+      setToast("Gagal memperbarui favorit");
+    } finally {
+      setFavBusy(false);
+    }
   };
 
   const share = async () => {
@@ -213,10 +231,10 @@ export default function Detail() {
   const firstEpisode = episodes[0];
 
   return (
-    <div className="min-h-screen bg-[#141218] pb-24 text-[#E6E0E9]">
+    <div className="min-h-screen bg-[color:var(--m3-surface)] pb-24 text-[#E6E0E9]">
       <header
         className={`fixed inset-x-0 top-0 z-40 pt-[env(safe-area-inset-top)] transition-colors motion-reduce:transition-none ${
-          scrolled ? "bg-[#141218]/90 backdrop-blur" : "bg-transparent"
+          scrolled ? "bg-[color:var(--m3-surface)]/90 backdrop-blur" : "bg-transparent"
         }`}
       >
         <div className="mx-auto flex h-16 max-w-3xl items-center gap-1 pl-2 pr-2">
@@ -248,13 +266,13 @@ export default function Detail() {
       <main className="relative mx-auto max-w-3xl">
         {detail?.poster && (
           <div className="pointer-events-none absolute inset-x-0 top-0 h-[380px] overflow-hidden" aria-hidden="true">
-            <img
+            <Poster
               src={detail.poster}
               alt=""
-              referrerPolicy="no-referrer"
               className="h-full w-full scale-125 object-cover opacity-40 blur-2xl"
+              fallback="none"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#141218]/30 via-[#141218]/60 to-[#141218]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--m3-surface)]/30 via-[color:var(--m3-surface)]/60 to-[color:var(--m3-surface)]" />
           </div>
         )}
 
@@ -262,7 +280,7 @@ export default function Detail() {
           {loading && <DetailSkeleton />}
 
           {!loading && error && (
-            <div className="mx-4 mt-4 flex flex-col items-start gap-3 rounded-2xl bg-[#2B2930] p-4">
+            <div className="mx-4 mt-4 flex flex-col items-start gap-3 rounded-2xl bg-[color:var(--m3-surface-high)] p-4">
               <p className="text-sm text-[#CAC4D0]">{error}</p>
               <button
                 onClick={() => setReloadKey((k) => k + 1)}
@@ -277,11 +295,10 @@ export default function Detail() {
           {!loading && !error && detail && (
             <>
               <section className="flex gap-4 px-4">
-                <div className="aspect-[2/3] w-28 shrink-0 overflow-hidden rounded-xl bg-[#2B2930] shadow-lg">
-                  <img
+                <div className="aspect-[2/3] w-28 shrink-0 overflow-hidden rounded-xl bg-[color:var(--m3-surface-high)] shadow-lg">
+                  <Poster
                     src={detail.poster}
                     alt={detail.title}
-                    referrerPolicy="no-referrer"
                     className="h-full w-full object-cover"
                   />
                 </div>
@@ -310,10 +327,10 @@ export default function Detail() {
 
               <section className="mt-5 grid grid-cols-4 gap-1 px-2">
                 <ActionItem
-                  icon={<Heart size={24} className={inLibrary ? "fill-[#D0BCFF]" : ""} />}
-                  label={inLibrary ? "Di library" : "Tambah"}
-                  active={inLibrary}
-                  onClick={toggleLibrary}
+                  icon={<Heart size={24} className={isFav ? "fill-[#D0BCFF]" : ""} />}
+                  label={isFav ? "Favorit" : "Favoritkan"}
+                  active={isFav}
+                  onClick={() => void toggleFav()}
                 />
                 <ActionItem
                   icon={<Film size={24} />}
