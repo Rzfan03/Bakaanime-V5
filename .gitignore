@@ -29,6 +29,14 @@ dist-ssr
 *.sln
 *.sw?
 
-# Signing keystore (rahasia)
+# Release signing keystore (secret)
 bakaanime-release.keystore
 keystore.b64
+
+# AI / design-tool artifacts (not part of the app)
+.ui-craft/
+.agents/
+.claude/
+.cursor/
+.aider*
+aidlc-docs/
