@@ -343,11 +343,8 @@ const toDownloads = (d: any): DownloadLink[] =>
   toList(d?.downloadUrl?.qualities)
     .flatMap((q: any) =>
       toList(q?.urls).map((u: any) => ({
-        host:
-          [pickString(u, ["title", "host", "name"]), pickString(q, ["title"])]
-            .filter(Boolean)
-            .join(" ")
-            .trim() || "Download",
+        host: pickString(u, ["title", "host", "name"]) || "Download",
+        quality: pickString(q, ["title"]) || "Lainnya",
         url: absUrl(pickString(u, ["url", "link"])),
       }))
     )

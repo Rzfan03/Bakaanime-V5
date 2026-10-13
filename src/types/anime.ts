@@ -62,6 +62,7 @@ export interface StreamSource {
 
 export interface DownloadLink {
   host: string;
+  quality: string;
   url: string;
 }
 

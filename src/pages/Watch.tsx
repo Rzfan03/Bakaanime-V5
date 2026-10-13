@@ -19,7 +19,7 @@ import { canEmbedStream, describeError, getDetail, getEpisode, getHome, genreSlu
 import { markWatched, readFavorites } from "../lib/storage";
 import type { FavoriteItem } from "../lib/storage";
 import { writeProgress } from "../lib/progress";
-import { backend } from "../lib/api/backend";
+import { BASE, backend } from "../lib/api/backend";
 import { addFavorite, removeFavorite } from "../lib/favorites";
 import type { AnimeDetail, AnimeItem, EpisodeDetail } from "../types/anime";
 import Poster from "../components/Poster";
@@ -82,6 +82,81 @@ function SectionTitle({
     <div className="flex items-center justify-between px-4 pb-2">
       <h2 className="text-lg font-medium leading-7">{title}</h2>
       {action}
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  placeholder,
+  options,
+  disabled,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  placeholder: string;
+  options: string[];
+  disabled?: boolean;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <span className="mb-1 block px-1 text-xs text-m3-on-surface-variant">{label}</span>
+      <div className="relative">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => setOpen((o) => !o)}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          className="flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-m3-outline-variant bg-transparent px-3 text-sm outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary disabled:opacity-40 disabled:hover:bg-transparent"
+        >
+          <span
+            className={`truncate ${value ? "text-m3-on-surface" : "text-m3-on-surface-variant"}`}
+          >
+            {value || placeholder}
+          </span>
+          <ChevronDown
+            size={18}
+            className={`shrink-0 text-m3-on-surface-variant transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+        {open && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+            <ul
+              role="listbox"
+              className="absolute left-0 right-0 z-20 mt-1 max-h-64 overflow-auto rounded-xl bg-[color:var(--m3-surface-high)] py-1 shadow-xl ring-1 ring-m3-outline-variant"
+            >
+              {options.map((opt) => {
+                const active = value === opt;
+                return (
+                  <li key={opt}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={active}
+                      onClick={() => {
+                        onChange(opt);
+                        setOpen(false);
+                      }}
+                      className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-sm text-m3-on-surface outline-none transition-colors ${
+                        active ? "bg-m3-primary-container/40" : "hover:bg-m3-surface-hover"
+                      }`}
+                    >
+                      <span className="truncate">{opt}</span>
+                      {active && <Check size={16} className="shrink-0 text-m3-primary" />}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -150,6 +225,10 @@ export default function Watch() {
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [streamIndex, setStreamIndex] = useState(0);
+  const [dlQuality, setDlQuality] = useState("");
+  const [dlHost, setDlHost] = useState("");
+  const [directUrl, setDirectUrl] = useState<string | null>(null);
+  const [directLoading, setDirectLoading] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [plotOpen, setPlotOpen] = useState(false);
   const [toast, setToast] = useState("");
@@ -217,6 +296,8 @@ export default function Watch() {
     setLoading(true);
     setError(null);
     setStreamIndex(0);
+    setDlQuality("");
+    setDlHost("");
     window.scrollTo({ top: 0 });
     getEpisode(slug)
       .then((res) => {
@@ -296,6 +377,42 @@ export default function Watch() {
     ? episodes
     : episodes.slice(0, EPISODE_LIMIT);
   const stream = episode?.streams[streamIndex];
+  const dlQualities = [...new Set((episode?.downloads ?? []).map((d) => d.quality))];
+  const dlHosts = [
+    ...new Set(
+      (episode?.downloads ?? []).filter((d) => d.quality === dlQuality).map((d) => d.host)
+    ),
+  ];
+  const dlSelected = episode?.downloads.find(
+    (d) => d.quality === dlQuality && d.host === dlHost
+  );
+
+  // Non-embeddable hosts (desustream) expose a direct video URL in their embed
+  // page; extract it server-side and play it natively instead of an iframe.
+  useEffect(() => {
+    if (!stream || canEmbedStream(stream.url)) {
+      setDirectUrl(null);
+      return;
+    }
+    let cancelled = false;
+    setDirectUrl(null);
+    setDirectLoading(true);
+    fetch(`${BASE}/stream?url=${encodeURIComponent(stream.url)}`)
+      .then((r) => r.json())
+      .then((j) => {
+        if (!cancelled) setDirectUrl(typeof j?.url === "string" ? j.url : null);
+      })
+      .catch(() => {
+        if (!cancelled) setDirectUrl(null);
+      })
+      .finally(() => {
+        if (!cancelled) setDirectLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [stream]);
+
   const title = episode?.title.replace(/\s*Subtitle Indonesia$/i, "") ?? "";
   const metaLine = detail
     ? [detail.type, detail.status, detail.duration?.replace(/\s*per ep\.?/i, "")]
@@ -371,7 +488,22 @@ export default function Watch() {
                 className="h-full w-full border-0"
               />
             )}
-            {!loading && stream && !canEmbedStream(stream.url) && (
+            {!loading && stream && !canEmbedStream(stream.url) && directUrl && (
+              <video
+                key={directUrl}
+                src={directUrl}
+                controls
+                playsInline
+                preload="metadata"
+                className="h-full w-full bg-black"
+              />
+            )}
+            {!loading && stream && !canEmbedStream(stream.url) && !directUrl && directLoading && (
+              <div className="flex h-full items-center justify-center">
+                <div className="h-full w-full animate-pulse bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
+              </div>
+            )}
+            {!loading && stream && !canEmbedStream(stream.url) && !directUrl && !directLoading && (
               <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
                 <p className="text-sm text-white/70">
                   Server ini tidak bisa diputar di dalam aplikasi.
@@ -588,18 +720,34 @@ export default function Watch() {
             {episode.downloads.length > 0 && (
               <section ref={downloadRef} className="mt-6 scroll-mt-20">
                 <SectionTitle title="Download" />
-                <div className="flex flex-wrap gap-2 px-4">
-                  {episode.downloads.map((d, i) => (
-                    <button
-                      key={`${d.url}-${i}`}
-                      type="button"
-                      onClick={() => void Browser.open({ url: d.url })}
-                      className="flex h-8 items-center gap-1.5 rounded-full border border-m3-outline-variant px-3 text-sm font-medium text-m3-primary outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary"
-                    >
-                      {d.host}
-                      <ExternalLink size={14} />
-                    </button>
-                  ))}
+                <div className="flex flex-col gap-3 px-4">
+                  <SelectField
+                    label="Kualitas"
+                    value={dlQuality}
+                    placeholder="Pilih kualitas"
+                    options={dlQualities}
+                    onChange={(v) => {
+                      setDlQuality(v);
+                      setDlHost("");
+                    }}
+                  />
+                  <SelectField
+                    label="Server"
+                    value={dlHost}
+                    placeholder="Pilih server"
+                    options={dlHosts}
+                    disabled={!dlQuality}
+                    onChange={setDlHost}
+                  />
+                  <button
+                    type="button"
+                    disabled={!dlSelected}
+                    onClick={() => dlSelected && void Browser.open({ url: dlSelected.url })}
+                    className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-m3-primary text-sm font-medium text-m3-on-primary outline-none transition-colors hover:bg-m3-primary-hover focus-visible:ring-2 focus-visible:ring-m3-primary disabled:cursor-not-allowed disabled:bg-m3-on-surface/[0.12] disabled:text-m3-on-surface/40"
+                  >
+                    <Download size={18} />
+                    Download
+                  </button>
                 </div>
               </section>
             )}
