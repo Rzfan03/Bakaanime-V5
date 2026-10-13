@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>BakaAnime — Rilis APK</title>
+  <id>https://bakaanime-v5.vercel.app/bakaanime.atom</id>
+  <link rel="self" href="https://bakaanime-v5.vercel.app/bakaanime.atom"/>
+  <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+  <updated>2026-10-13T13:28:23Z</updated>
+  <author>
+    <name>BakaAnime</name>
+  </author>
+  <entry>
+    <title>APK v1.0.38</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.38</id>
+    <updated>2026-10-13T13:28:23Z</updated>
+    <summary type="html"><![CDATA[fix: always prompt for update until app is updated]]></summary>
+  </entry>
+  <entry>
+    <title>APK v1.0.37</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.37</id>
+    <updated>2026-10-13T13:23:37Z</updated>
+    <summary type="html"><![CDATA[refactor: concise descriptions on settings items]]></summary>
+  </entry>
+  <entry>
+    <title>APK v1.0.36</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.36</id>
+    <updated>2026-10-13T11:09:03Z</updated>
+    <summary type="html"><![CDATA[refactor: drop descriptions from settings items]]></summary>
+  </entry>
+  <entry>
+    <title>APK v1.0.35</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.35</id>
+    <updated>2026-10-13T10:54:15Z</updated>
+    <summary type="html"><![CDATA[feat: add light material 3 theme with token-based colors]]></summary>
+  </entry>
+  <entry>
+    <title>APK v1.0.34</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.34</id>
+    <updated>2026-10-13T10:20:40Z</updated>
+    <summary type="html"><![CDATA[ci: use commit list as update dialog release notes]]></summary>
+  </entry>
+  <entry>
+    <title>APK v1.0.33</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.33</id>
+    <updated>2026-10-13T10:11:58Z</updated>
+    <summary type="html"><![CDATA[fix: show installed app version in settings instead of latest release]]></summary>
+  </entry>
+  <entry>
+    <title>APK v1.0.32</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.32</id>
+    <updated>2026-10-13T09:57:19Z</updated>
+    <summary type="html"><![CDATA[feat: prompt update modal from latest release data]]></summary>
+  </entry>
+  <entry>
+    <title>APK v1.0.31</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.31</id>
+    <updated>2026-10-13T09:48:14Z</updated>
+    <summary type="html"><![CDATA[feat: show latest app version and keep tab bar off the keyboard]]></summary>
+  </entry>
+  <entry>
+    <title>APK v1.0.30</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.30</id>
+    <updated>2026-10-13T09:40:25Z</updated>
+    <summary type="html"><![CDATA[fix: accept Clerk sessions missing azp claim]]></summary>
+  </entry>
+  <entry>
+    <title>APK v1.0.29</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.29</id>
+    <updated>2026-10-13T09:18:36Z</updated>
+    <summary type="html"><![CDATA[feat: notify new episodes of library anime]]></summary>
+  </entry>
+  <entry>
+    <title>APK v1.0.28</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.28</id>
+    <updated>2026-10-13T09:01:37Z</updated>
+    <summary type="html"><![CDATA[fix(security): shorten token lifetime and bind issuer/audience]]></summary>
+  </entry>
+  <entry>
+    <title>APK v1.0.27</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.27</id>
+    <updated>2026-10-13T08:55:18Z</updated>
+    <summary type="html"><![CDATA[fix(security): harden headers, key login, image proxy, and token verification]]></summary>
+  </entry>
+  <entry>
+    <title>APK v1.0.26</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.26</id>
+    <updated>2026-10-13T08:41:17Z</updated>
+    <summary type="html"><![CDATA[docs: add MIT license]]></summary>
+  </entry>
+  <entry>
+    <title>APK v1.0.24</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.24</id>
+    <updated>2026-10-13T08:30:32Z</updated>
+    <summary type="html"><![CDATA[docs: translate remaining comment in genkey script]]></summary>
+  </entry>
+  <entry>
+    <title>APK v1.0.23</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.23</id>
+    <updated>2026-10-13T08:03:25Z</updated>
+    <summary type="html"><![CDATA[ci: versi APK naik otomatis tiap build (1.0.<run_number>)]]></summary>
+  </entry>
+</feed>
