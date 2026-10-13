@@ -13,7 +13,7 @@ jobs:
   build-apk:
     # Atom sync commits are pushed back only to update the feed file; they must
     # deploy on Vercel but not build another APK, so skip them here.
-    if: ${{ !startsWith(github.event.head_commit.message || '', 'chore: update bakaanime.atom') }}
+    if: "${{ !startsWith(github.event.head_commit.message || '', 'chore: update bakaanime.atom') }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
