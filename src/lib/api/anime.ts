@@ -3,12 +3,16 @@ import type {
   AnimeDetail,
   AnimeItem,
   AnimeListResult,
+  DownloadLink,
   Episode,
   EpisodeDetail,
+  StreamSource,
 } from "../../types/anime";
 
+// Source: Otakudesu via the Sanka Vollerei aggregate API. Otakudesu is the
+// default source so its endpoints are unprefixed (/home, /anime/{slug}, ...).
 const api = axios.create({
-  baseURL: "https://www.sankavollerei.web.id/anime/animekuindo",
+  baseURL: "https://www.sankavollerei.web.id/anime",
   timeout: 20000,
 });
 
@@ -40,8 +44,10 @@ const toGenre = (g: any): string =>
   typeof g === "string" ? g : pickString(g, ["name", "title"]);
 
 const toItem = (a: any): AnimeItem => {
-  const slug = normSlug(pickString(a, ["slug", "id"]));
-  const episode = pickString(a, ["episode"]);
+  const slug = normSlug(pickString(a, ["slug", "id", "animeId"]));
+  const episode =
+    pickString(a, ["episode"]) ||
+    (typeof a?.episodes === "number" ? `${a.episodes} Eps` : "");
   return {
     title: cleanTitle(pickString(a, ["title", "name"])),
     slug,
@@ -61,7 +67,9 @@ const fetchList = async (
   const res = await api.get(path, { params: { page, ...params } });
 
   const data = res.data?.data;
-  const rows = Array.isArray(data) ? data : (data?.latest ?? res.data?.anime_list ?? []);
+  const rows = Array.isArray(data)
+    ? data
+    : (data?.animeList ?? data?.ongoing?.animeList ?? data?.latest ?? res.data?.anime_list ?? []);
 
   const seen = new Set<string>();
   const items: AnimeItem[] = [];
@@ -72,51 +80,43 @@ const fetchList = async (
     items.push(item);
   }
 
-  const p = res.data?.pagination;
+  const p = res.data?.pagination ?? data?.pagination;
+  const hasPrevRaw = p?.hasPrev ?? p?.has_prev ?? p?.hasPrevPage;
+  const hasNextRaw = p?.hasNext ?? p?.has_next ?? p?.hasNextPage;
   return {
     items,
     pagination: {
       currentPage: Number(p?.currentPage ?? p?.current_page) || page,
-      hasPrev:
-        typeof p?.hasPrev === "boolean"
-          ? p.hasPrev
-          : typeof p?.has_prev === "boolean"
-            ? p.has_prev
-            : page > 1,
-      hasNext:
-        typeof p?.hasNext === "boolean"
-          ? p.hasNext
-          : typeof p?.has_next === "boolean"
-            ? p.has_next
-            : items.length > 0,
+      hasPrev: typeof hasPrevRaw === "boolean" ? hasPrevRaw : page > 1,
+      hasNext: typeof hasNextRaw === "boolean" ? hasNextRaw : items.length > 0,
     },
   };
 };
 
-export const getHome = (page = 1) => fetchList("/home", page);
+export const getHome = (page = 1) => fetchList("/ongoing-anime", page);
 
 export const searchAnime = (keyword: string, page = 1) =>
   fetchList(`/search/${encodeURIComponent(keyword)}`, page);
 
 export const getByGenre = (slug: string, page = 1) =>
-  fetchList(`/genres/${encodeURIComponent(slug)}`, page);
+  fetchList(`/genre/${encodeURIComponent(slug)}`, page);
 
 const toEpisode = (e: any): Episode => {
-  const slug = normSlug(pickString(e, ["slug", "id"]));
+  const slug = normSlug(pickString(e, ["episodeId", "slug", "id"]));
   const fromSlug = slug.match(/episode-(\d+)/i)?.[1];
   return {
     title: pickString(e, ["title", "name"]),
     slug,
-    number: Number(pickString(e, ["episode", "number"])) || Number(fromSlug) || 0,
-    date: pickString(e, ["release_date", "date"]) || undefined,
+    number: Number(pickString(e, ["eps", "episode", "number"])) || Number(fromSlug) || 0,
+    date: pickString(e, ["date", "release_date"]) || undefined,
   };
 };
 
 export const normalizeDetail = (raw: any): AnimeDetail => {
-  const d = raw?.detail ?? raw?.data ?? raw ?? {};
+  const d = raw?.data ?? raw?.detail ?? raw ?? {};
   const info = d.info ?? {};
 
-  const episodes = toList(d.episode_list ?? d.episodes)
+  const episodes = toList(d.episodeList ?? d.episode_list)
     .map(toEpisode)
     .filter((e) => e.slug)
     .sort((a, b) => a.number - b.number);
@@ -126,15 +126,14 @@ export const normalizeDetail = (raw: any): AnimeDetail => {
     seriesSlug: "",
     poster: pickString(d, ["poster", "image", "thumbnail"]),
     synopsis: pickString(d, ["synopsis", "description"]),
-    status: pickString(info, ["status"]),
-    type: pickString(info, ["type", "tipe"]),
-    studio: pickString(info, ["studio"]) || undefined,
-    season: pickString(info, ["season"]) || undefined,
-    released: pickString(info, ["released", "dirilis"]) || undefined,
-    duration: pickString(info, ["duration", "durasi"]) || undefined,
-    totalEpisode:
-      pickString(info, ["episodes", "total_episode", "episode"]) || undefined,
-    genres: toList(d.genres).map(toGenre).filter(Boolean),
+    status: pickString(d, ["status"]) || pickString(info, ["status"]),
+    type: pickString(d, ["type"]) || pickString(info, ["type", "tipe"]),
+    studio: pickString(d, ["studios", "studio"]) || pickString(info, ["studio"]) || undefined,
+    season: pickString(d, ["season"]) || pickString(info, ["season"]) || undefined,
+    released: pickString(d, ["aired", "released"]) || pickString(info, ["released", "dirilis"]) || undefined,
+    duration: pickString(d, ["duration"]) || pickString(info, ["duration", "durasi"]) || undefined,
+    totalEpisode: pickString(d, ["episodes", "total_episode"]) || pickString(info, ["episodes"]) || undefined,
+    genres: toList(d.genreList ?? d.genres).map(toGenre).filter(Boolean),
     episodes,
   };
 
@@ -146,19 +145,23 @@ export const normalizeDetail = (raw: any): AnimeDetail => {
   return detail;
 };
 
-// Bad slugs still return 200 with garbage (homepage headlines), so validate:
-// a real detail always has info or episodes.
+// Bad slugs fail (non-2xx) or return the wrong shape, so validate: a real
+// detail always has a title plus an episode list, batch, or synopsis.
 const isRealDetail = (raw: any): boolean => {
   const d = raw?.data ?? raw?.detail ?? raw ?? {};
-  const info = d?.info ?? {};
-  const eps = d?.episode_list ?? d?.episodes ?? [];
-  return Object.keys(info).length > 0 || (Array.isArray(eps) && eps.length > 0);
+  if (!d?.title) return false;
+  return (
+    Array.isArray(d.episodeList) ||
+    Array.isArray(d.episode_list) ||
+    !!d.batch ||
+    !!d.synopsis
+  );
 };
 
 const isEpisodeSlug = (slug: string): boolean => /-episode-\d+/i.test(slug);
 
 const fetchDetail = async (slug: string): Promise<AnimeDetail | null> => {
-  const res = await api.get(`/detail/${encodeURIComponent(slug)}`);
+  const res = await api.get(`/anime/${encodeURIComponent(slug)}`);
   if (!isRealDetail(res.data)) return null;
   const detail = normalizeDetail(res.data);
   detail.seriesSlug = slug;
@@ -169,7 +172,7 @@ const fetchDetail = async (slug: string): Promise<AnimeDetail | null> => {
 const resolveAnimeSlug = async (episodeSlug: string): Promise<string> => {
   try {
     const res = await api.get(`/episode/${encodeURIComponent(episodeSlug)}`);
-    return normSlug(pickString(res.data?.data ?? res.data ?? {}, ["anime_slug", "animeSlug"]));
+    return normSlug(pickString(res.data?.data ?? res.data ?? {}, ["animeId", "anime_slug", "animeSlug"]));
   } catch {
     return "";
   }
@@ -208,45 +211,84 @@ export const getDetail = async (slug: string): Promise<AnimeDetail> => {
   throw new Error("Anime tidak ditemukan.");
 };
 
-export const normalizeEpisode = (raw: any, episodeSlug = ""): EpisodeDetail => {
-  const d = raw?.data ?? raw ?? {};
+// Each Otakudesu mirror ("server") needs one extra call to resolve its embed
+// URL. Capped so a single episode view stays well under the API rate limit.
+const MAX_STREAMS = 4;
 
+const resolveStreams = async (d: any): Promise<StreamSource[]> => {
+  const picks: { name: string; serverId: string; q: number }[] = [];
   const seen = new Set<string>();
-  const streams = toList(d.streams)
-    .map((s) => ({
-      name: pickString(s, ["server", "name", "label", "title"]) || "Stream",
-      url: pickString(s, ["url", "link", "src"]),
-    }))
-    .filter((s) => {
-      if (!s.url || seen.has(s.url)) return false;
-      seen.add(s.url);
-      return true;
-    });
+  for (const q of toList(d?.server?.qualities)) {
+    const qNum = parseInt(pickString(q, ["title"]), 10) || 0;
+    for (const s of toList(q?.serverList)) {
+      const id = pickString(s, ["serverId", "id"]);
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      picks.push({
+        name:
+          [pickString(s, ["title", "name"]), pickString(q, ["title"])]
+            .filter(Boolean)
+            .join(" ")
+            .trim() || "Server",
+        serverId: id,
+        q: qNum,
+      });
+    }
+  }
+  // Prefer higher resolutions before capping the number of resolved mirrors.
+  picks.sort((a, b) => b.q - a.q);
 
-  const downloads = toList(d.downloads)
-    .flatMap((x) => (Array.isArray(x?.links) ? x.links : [x]))
-    .map((l) => ({
-      host: pickString(l, ["host", "name", "label", "title"]) || "Download",
-      url: pickString(l, ["url", "link"]),
-    }))
+  const resolved = await Promise.all(
+    picks.slice(0, MAX_STREAMS).map(async (p) => {
+      try {
+        const r = await api.get(`/server/${encodeURIComponent(p.serverId)}`);
+        return { name: p.name, url: pickString(r.data?.data ?? r.data ?? {}, ["url"]) };
+      } catch {
+        return { name: p.name, url: "" };
+      }
+    })
+  );
+
+  const streams = resolved.filter((s) => s.url);
+  const fallback = pickString(d, ["defaultStreamingUrl"]);
+  if (fallback && !streams.some((s) => s.url === fallback)) {
+    streams.unshift({ name: "Server Utama", url: fallback });
+  }
+  return streams;
+};
+
+const toDownloads = (d: any): DownloadLink[] =>
+  toList(d?.downloadUrl?.qualities)
+    .flatMap((q: any) =>
+      toList(q?.urls).map((u: any) => ({
+        host:
+          [pickString(u, ["title", "host", "name"]), pickString(q, ["title"])]
+            .filter(Boolean)
+            .join(" ")
+            .trim() || "Download",
+        url: pickString(u, ["url", "link"]),
+      }))
+    )
     .filter((l) => l.url);
 
-  // API doesn't return anime_slug; derive it from the episode slug
+export const normalizeEpisode = (raw: any, episodeSlug = ""): EpisodeDetail => {
+  const d = raw?.data ?? raw ?? {};
   const animeSlug =
-    normSlug(pickString(d, ["anime_slug", "animeSlug"])) ||
+    normSlug(pickString(d, ["animeId", "anime_slug", "animeSlug"])) ||
     seriesSlugOf(episodeSlug);
-
   return {
     title: pickString(d, ["title", "name"]),
     animeSlug,
-    streams,
-    downloads,
+    streams: [],
+    downloads: toDownloads(d),
   };
 };
 
 export const getEpisode = async (slug: string): Promise<EpisodeDetail> => {
   const res = await api.get(`/episode/${encodeURIComponent(slug)}`);
-  return normalizeEpisode(res.data, slug);
+  const episode = normalizeEpisode(res.data, slug);
+  episode.streams = await resolveStreams(res.data?.data ?? res.data ?? {});
+  return episode;
 };
 
 export const describeError = (_e: unknown): string => "Telah Terjadi Sebuah Kesalahan.";

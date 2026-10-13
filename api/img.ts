@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { guard, json } from "./_lib/http.js";
 
-const HOST_SUFFIXES = ["anoboy.be", "anime-kuindo.com"];
+const HOST_SUFFIXES = ["anoboy.be", "anime-kuindo.com", "otakudesu.blog", "otakudesu.best"];
 const PHOTON_HOSTS = new Set(["i0.wp.com", "i1.wp.com", "i2.wp.com"]);
 
 const matchesSuffix = (host: string) => {

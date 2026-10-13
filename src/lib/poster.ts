@@ -1,6 +1,6 @@
 import { BASE } from "./api/backend";
 
-const PROXY_HOST_SUFFIXES = ["anoboy.be", "anime-kuindo.com"];
+const PROXY_HOST_SUFFIXES = ["anoboy.be", "anime-kuindo.com", "otakudesu.blog", "otakudesu.best"];
 const PHOTON_HOSTS = new Set(["i0.wp.com", "i1.wp.com", "i2.wp.com"]);
 
 const matchesSuffix = (host: string) => {
