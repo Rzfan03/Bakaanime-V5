@@ -19,7 +19,7 @@ function errText(e: unknown): string {
 }
 
 export default function Login() {
-  const { user, loading: authLoading, loginWithKey, refresh, exchange, logout } = useAuth();
+  const { user, loading: authLoading, loginWithKey, exchange, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from ?? "/";

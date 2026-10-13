@@ -441,7 +441,7 @@ function EditSheet({
   onPickBanner: () => void;
   onFrameChange: (id: FrameId) => void;
   onFontChange: (id: FontId) => void;
-  onSave: (data: Partial<UserProfile>) => Promise<void>;
+  onSave: (data: Partial<UserProfile & { font?: string }>) => Promise<void>;
   onClose: () => void;
 }) {
   const [name, setName] = useState(profile.name);
