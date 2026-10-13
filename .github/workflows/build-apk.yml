@@ -11,6 +11,9 @@ permissions:
 
 jobs:
   build-apk:
+    # Atom sync commits are pushed back only to update the feed file; they must
+    # deploy on Vercel but not build another APK, so skip them here.
+    if: ${{ !startsWith(github.event.head_commit.message || '', 'chore: update bakaanime.atom') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -100,7 +103,8 @@ jobs:
           gh release edit latest --title "APK v$VER" --notes "$NOTES"
 
       # Append a feed entry so bakaanime.atom keeps the full history (newest
-      # first). Commit back with [skip ci] so this doesn't build another APK.
+      # first). Commit back without a skip keyword so Vercel deploys the feed;
+      # the job-level guard above prevents this commit from rebuilding an APK.
       - name: Update atom feed
         env:
           GH_TOKEN: ${{ github.token }}
@@ -125,5 +129,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add public/bakaanime.atom
-          git commit -m "chore: update bakaanime.atom [skip ci]"
+          git commit -m "chore: update bakaanime.atom"
           git push origin "$BRANCH"
