@@ -96,7 +96,7 @@ export default function Library() {
         setLibrary(res.library);
       })
       .catch(() => {
-        if (!cancelled) setError("Gagal memuat library.");
+        if (!cancelled) setError("Telah Terjadi Sebuah Kesalahan.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

@@ -25,7 +25,7 @@ import Poster from "../components/Poster";
 
 const BANNER_COUNT = 5;
 
-const pathFor = (a: AnimeItem) => `/detail/${encodeURIComponent(a.seriesSlug)}`;
+const pathFor = (a: AnimeItem) => `/detail/${encodeURIComponent(a.slug)}`;
 
 function BannerCarousel({
   items,
@@ -247,7 +247,7 @@ export default function Home() {
         if (!cancelled) setData(res);
       })
       .catch(() => {
-        if (!cancelled) setError("Gagal memuat data. Periksa koneksi, lalu coba lagi.");
+        if (!cancelled) setError("Telah Terjadi Sebuah Kesalahan.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

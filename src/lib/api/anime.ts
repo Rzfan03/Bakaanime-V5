@@ -123,6 +123,7 @@ export const normalizeDetail = (raw: any): AnimeDetail => {
 
   const detail: AnimeDetail = {
     title: pickString(d, ["title", "name"]),
+    seriesSlug: "",
     poster: pickString(d, ["poster", "image", "thumbnail"]),
     synopsis: pickString(d, ["synopsis", "description"]),
     status: pickString(info, ["status"]),
@@ -145,9 +146,66 @@ export const normalizeDetail = (raw: any): AnimeDetail => {
   return detail;
 };
 
-export const getDetail = async (slug: string): Promise<AnimeDetail> => {
+// Slug salah tetap dibalas 200 tapi isinya sampah (headline beranda), jadi respons harus
+// divalidasi: detail asli selalu punya info atau episode.
+const isRealDetail = (raw: any): boolean => {
+  const d = raw?.data ?? raw?.detail ?? raw ?? {};
+  const info = d?.info ?? {};
+  const eps = d?.episode_list ?? d?.episodes ?? [];
+  return Object.keys(info).length > 0 || (Array.isArray(eps) && eps.length > 0);
+};
+
+const isEpisodeSlug = (slug: string): boolean => /-episode-\d+/i.test(slug);
+
+const fetchDetail = async (slug: string): Promise<AnimeDetail | null> => {
   const res = await api.get(`/detail/${encodeURIComponent(slug)}`);
-  return normalizeDetail(res.data);
+  if (!isRealDetail(res.data)) return null;
+  const detail = normalizeDetail(res.data);
+  detail.seriesSlug = slug;
+  return detail;
+};
+
+// Slug seri kanonik upstream hanya bisa dipastikan lewat endpoint episode.
+const resolveAnimeSlug = async (episodeSlug: string): Promise<string> => {
+  try {
+    const res = await api.get(`/episode/${encodeURIComponent(episodeSlug)}`);
+    return normSlug(pickString(res.data?.data ?? res.data ?? {}, ["anime_slug", "animeSlug"]));
+  } catch {
+    return "";
+  }
+};
+
+// Upstream series slug kadang punya/tidak punya "-season-N"/"-part-N"/"-cour-N" (mis.
+// rezero-...-season-1 -> rezero-...). Coba varian slug sebelum jatuh ke resolusi episode.
+const detailCandidates = (slug: string): string[] => {
+  const out = [slug];
+  const add = (s: string) => {
+    if (s && !out.includes(s)) out.push(s);
+  };
+  add(slug.replace(/(-(season|part|cour)-\d+|-\d+(st|nd|rd|th)-season)$/i, ""));
+  add(slug.replace(/-season-\d+$/i, ""));
+  add(slug.replace(/-part-\d+$/i, ""));
+  add(slug.replace(/-cour-\d+$/i, ""));
+  return out;
+};
+
+export const getDetail = async (slug: string): Promise<AnimeDetail> => {
+  // Kartu feed memakai slug episode; seri biasanya = slug tanpa "-episode-N".
+  const candidates = detailCandidates(isEpisodeSlug(slug) ? seriesSlugOf(slug) : slug);
+  for (const candidate of candidates) {
+    const found = await fetchDetail(candidate).catch(() => null);
+    if (found) return found;
+  }
+
+  if (isEpisodeSlug(slug)) {
+    const canonical = await resolveAnimeSlug(slug);
+    if (canonical && !candidates.includes(canonical)) {
+      const viaEpisode = await fetchDetail(canonical).catch(() => null);
+      if (viaEpisode) return viaEpisode;
+    }
+  }
+
+  throw new Error("Anime tidak ditemukan.");
 };
 
 export const normalizeEpisode = (raw: any, episodeSlug = ""): EpisodeDetail => {
@@ -191,14 +249,4 @@ export const getEpisode = async (slug: string): Promise<EpisodeDetail> => {
   return normalizeEpisode(res.data, slug);
 };
 
-export const describeError = (e: unknown): string => {
-  if (axios.isAxiosError(e)) {
-    if (e.response) {
-      return `Server API mengembalikan error ${e.response.status}. Masalahnya ada di sisi API, bukan di aplikasi.`;
-    }
-    if (e.code === "ECONNABORTED") return "Permintaan ke server API terlalu lama (timeout).";
-    return "Tidak bisa terhubung ke server API (jaringan atau CORS).";
-  }
-  if (e instanceof Error && e.message) return e.message;
-  return "Gagal memuat data.";
-};
+export const describeError = (_e: unknown): string => "Telah Terjadi Sebuah Kesalahan.";

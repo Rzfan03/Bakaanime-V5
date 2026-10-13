@@ -28,12 +28,6 @@ const TEXT_BUTTON =
 /* ─────────────────────────────────────────────
    Helpers
    ───────────────────────────────────────────── */
-function errMessage(e: unknown, fallback: string): string {
-  const msg = e instanceof Error ? e.message : "";
-  if (msg === "unauthorized") return "Sesi berakhir. Silakan masuk lagi.";
-  return msg || fallback;
-}
-
 function timeAgo(iso: string): string {
   const diff = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
   if (diff < 60) return "Baru saja";
@@ -221,8 +215,8 @@ export default function Comments({ animeSlug }: { animeSlug: string }) {
       .then((res) => {
         if (!cancelled) setComments(res.comments);
       })
-      .catch((e) => {
-        if (!cancelled) setError(errMessage(e, "Gagal memuat komentar."));
+      .catch(() => {
+        if (!cancelled) setError("Telah Terjadi Sebuah Kesalahan.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -251,8 +245,8 @@ export default function Comments({ animeSlug }: { animeSlug: string }) {
       const res = await backend.postComment(animeSlug, value);
       setComments((prev) => [res.comment, ...prev]);
       setText("");
-    } catch (e) {
-      setPostErr(errMessage(e, "Gagal mengirim komentar."));
+    } catch {
+      setPostErr("Telah Terjadi Sebuah Kesalahan.");
     } finally {
       setPosting(false);
     }

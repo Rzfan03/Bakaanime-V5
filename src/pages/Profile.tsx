@@ -467,8 +467,8 @@ function EditSheet({
     try {
       await onSave({ name: name.trim(), bio: bio.trim(), font: fontId });
       close();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Gagal menyimpan.");
+    } catch {
+      setError("Telah Terjadi Sebuah Kesalahan.");
     } finally {
       setSaving(false);
     }
@@ -742,8 +742,8 @@ export default function Profile() {
         dataUrl = await fileToResizedDataUrl(file, kind === "avatar" ? 300 : 1000);
       }
       await handleSave(kind === "avatar" ? { avatar: dataUrl } : { banner: dataUrl });
-    } catch (e) {
-      setImageError(e instanceof Error ? e.message : "Gagal menyimpan.");
+    } catch {
+      setImageError("Telah Terjadi Sebuah Kesalahan.");
     } finally {
       setBusyImage(null);
     }
@@ -761,8 +761,8 @@ export default function Profile() {
       const dataUrl = await pickNativeImage(kind === "avatar" ? 300 : 1000);
       if (!dataUrl) return;
       await handleSave(kind === "avatar" ? { avatar: dataUrl } : { banner: dataUrl });
-    } catch (e) {
-      setImageError(e instanceof Error ? e.message : "Gagal mengambil gambar.");
+    } catch {
+      setImageError("Telah Terjadi Sebuah Kesalahan.");
     } finally {
       setBusyImage(null);
     }

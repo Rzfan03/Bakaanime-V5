@@ -86,7 +86,7 @@ function SectionTitle({
 function RecCard({ item }: { item: AnimeItem }) {
   return (
     <Link
-      to={detailPath(item.seriesSlug)}
+      to={detailPath(item.slug)}
       className="group block w-28 shrink-0 snap-start outline-none"
     >
       <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-[color:var(--m3-surface-high)] group-focus-visible:ring-2 group-focus-visible:ring-[#D0BCFF]">
@@ -300,7 +300,7 @@ export default function Watch() {
       setFavorites((prev) =>
         wasFav ? [item, ...prev] : prev.filter((f) => f.slug !== animeSlug)
       );
-      setToast("Gagal memperbarui favorit");
+      setToast("Telah Terjadi Sebuah Kesalahan.");
     }
   };
 

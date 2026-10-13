@@ -4,19 +4,8 @@ import { ArrowRight, Loader2 } from "lucide-react";
 import { useAuth as useClerkAuth, useClerk } from "@clerk/react";
 import { useAuth } from "../lib/auth";
 
-type ClerkErrorLike = { errors?: { longMessage?: string; message?: string }[]; message?: string };
-
 const row =
   "flex h-14 w-full items-center bg-[color:var(--m3-surface-low)] text-[15px] font-medium text-[#E6E0E9] outline-none transition-colors hover:bg-[color:var(--m3-surface-high)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D0BCFF]";
-
-function errText(e: unknown): string {
-  const c = e as ClerkErrorLike;
-  return (
-    c?.errors?.[0]?.longMessage ??
-    c?.errors?.[0]?.message ??
-    (e instanceof Error ? e.message : "Terjadi kesalahan. Coba lagi.")
-  );
-}
 
 export default function Login() {
   const { user, loading: authLoading, loginWithKey, exchange, logout } = useAuth();
@@ -65,8 +54,8 @@ export default function Login() {
         redirectUrl: window.location.origin + "/sso-callback",
         redirectUrlComplete: from,
       });
-    } catch (err) {
-      setError(errText(err));
+    } catch {
+      setError("Telah Terjadi Sebuah Kesalahan.");
       setBusyGoogle(false);
     }
   };
@@ -79,8 +68,8 @@ export default function Login() {
     setError("");
     try {
       await loginWithKey(value);
-    } catch (err) {
-      setError(errText(err));
+    } catch {
+      setError("Telah Terjadi Sebuah Kesalahan.");
     } finally {
       setBusyKey(false);
     }

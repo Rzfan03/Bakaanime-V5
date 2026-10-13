@@ -131,7 +131,7 @@ export default function Search() {
       })
       .catch(() => {
         if (cancelled) return;
-        setError("Gagal mencari. Periksa koneksi lalu coba lagi.");
+        setError("Telah Terjadi Sebuah Kesalahan.");
         setResults([]);
       })
       .finally(() => {

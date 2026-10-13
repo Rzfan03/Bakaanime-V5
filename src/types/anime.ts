@@ -28,6 +28,7 @@ export interface Episode {
 
 export interface AnimeDetail {
   title: string;
+  seriesSlug: string;
   poster: string;
   synopsis: string;
   status: string;

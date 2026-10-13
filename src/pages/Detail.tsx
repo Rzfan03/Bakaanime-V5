@@ -124,6 +124,7 @@ export default function Detail() {
   const { user } = useAuth();
 
   const [detail, setDetail] = useState<AnimeDetail | null>(null);
+  const [seriesSlug, setSeriesSlug] = useState(slug);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -140,16 +141,16 @@ export default function Detail() {
   useEffect(() => {
     if (user) {
       void backend.getFavorites().then((res) => {
-        setIsFav(res.items.some((i) => i.slug === slug));
+        setIsFav(res.items.some((i) => i.slug === seriesSlug));
       }).catch(() => {});
     } else {
-      setIsFav(readFavorites().some((i) => i.slug === slug));
+      setIsFav(readFavorites().some((i) => i.slug === seriesSlug));
     }
-  }, [slug, user]);
+  }, [seriesSlug, user]);
 
   useEffect(() => {
-    setWatched(readWatched(slug));
-  }, [slug]);
+    setWatched(readWatched(seriesSlug));
+  }, [seriesSlug]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 220);
@@ -164,11 +165,15 @@ export default function Detail() {
     setError(null);
     setExpanded(false);
     setEpisodesExpanded(false);
+    setSeriesSlug(slug);
     window.scrollTo({ top: 0 });
 
     getDetail(slug)
       .then((res) => {
-        if (!cancelled) setDetail(res);
+        if (!cancelled) {
+          setDetail(res);
+          setSeriesSlug(res.seriesSlug || slug);
+        }
       })
       .catch((e) => {
         if (!cancelled) setError(describeError(e));
@@ -195,12 +200,12 @@ export default function Detail() {
     const wasIn = isFav;
     setIsFav(!wasIn); // optimistic
     try {
-      if (wasIn) await removeFavorite(slug);
-      else await addFavorite({ slug, title: detail.title, poster: detail.poster });
+      if (wasIn) await removeFavorite(seriesSlug);
+      else await addFavorite({ slug: seriesSlug, title: detail.title, poster: detail.poster });
       setToast(wasIn ? "Dihapus dari favorit" : "Ditambahkan ke favorit dan library");
     } catch {
       setIsFav(wasIn); // rollback
-      setToast("Gagal memperbarui favorit");
+      setToast("Telah Terjadi Sebuah Kesalahan.");
     } finally {
       setFavBusy(false);
     }
@@ -453,7 +458,7 @@ export default function Detail() {
                 )}
               </section>
 
-              <Comments animeSlug={slug} />
+              <Comments animeSlug={seriesSlug} />
             </>
           )}
         </div>
