@@ -12,9 +12,10 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { StatusBar } from "@capacitor/status-bar";
-import { describeError, getDetail, getEpisode, getHome, genreSlug } from "../lib/api/anime";
+import { canEmbedStream, describeError, getDetail, getEpisode, getHome, genreSlug } from "../lib/api/anime";
 import { markWatched, readFavorites } from "../lib/storage";
 import type { FavoriteItem } from "../lib/storage";
 import { writeProgress } from "../lib/progress";
@@ -360,7 +361,7 @@ export default function Watch() {
             {loading && (
               <div className="h-full w-full animate-pulse bg-[color:var(--m3-surface-high)] motion-reduce:animate-none" />
             )}
-            {!loading && stream && (
+            {!loading && stream && canEmbedStream(stream.url) && (
               <iframe
                 key={stream.url}
                 src={stream.url}
@@ -369,6 +370,20 @@ export default function Watch() {
                 allowFullScreen
                 className="h-full w-full border-0"
               />
+            )}
+            {!loading && stream && !canEmbedStream(stream.url) && (
+              <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
+                <p className="text-sm text-white/70">
+                  Server ini tidak bisa diputar di dalam aplikasi.
+                </p>
+                <button
+                  onClick={() => void Browser.open({ url: stream.url })}
+                  className="flex h-10 items-center gap-2 rounded-full bg-m3-primary px-4 text-sm font-medium text-m3-on-primary outline-none transition-colors hover:bg-m3-primary-hover focus-visible:ring-2 focus-visible:ring-m3-primary"
+                >
+                  <ExternalLink size={16} />
+                  Buka di browser
+                </button>
+              </div>
             )}
             {!loading && !error && !stream && (
               <div className="flex h-full items-center justify-center px-6 text-center text-sm text-m3-on-surface-variant">
@@ -556,7 +571,7 @@ export default function Watch() {
             {detail && detail.genres.length > 0 && (
               <section
                 aria-label="Genre"
-                className="mt-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className="mt-6 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
                 {detail.genres.map((g) => (
                   <Link
@@ -575,16 +590,15 @@ export default function Watch() {
                 <SectionTitle title="Download" />
                 <div className="flex flex-wrap gap-2 px-4">
                   {episode.downloads.map((d, i) => (
-                    <a
+                    <button
                       key={`${d.url}-${i}`}
-                      href={d.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      type="button"
+                      onClick={() => void Browser.open({ url: d.url })}
                       className="flex h-8 items-center gap-1.5 rounded-full border border-m3-outline-variant px-3 text-sm font-medium text-m3-primary outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary"
                     >
                       {d.host}
                       <ExternalLink size={14} />
-                    </a>
+                    </button>
                   ))}
                 </div>
               </section>

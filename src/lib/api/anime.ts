@@ -27,7 +27,31 @@ const pickString = (obj: any, keys: string[]): string => {
   return "";
 };
 
+// Some embed hosts (desustream*) send CSP `frame-ancestors` that forbid our
+// app origin, so their iframes never load. Detect them to offer an external
+// "open in browser" fallback instead of a dead player.
+const NON_EMBEDDABLE = /(^|\.)desustream\.(com|net|me|info)$/i;
+export const canEmbedStream = (url: string): boolean => {
+  try {
+    return !NON_EMBEDDABLE.test(new URL(url).hostname);
+  } catch {
+    return true;
+  }
+};
+
 const toList = (value: unknown): any[] => (Array.isArray(value) ? value : []);
+
+// Upstream sometimes returns root-relative paths (e.g. "/anime/batch/x").
+// Left relative, they'd resolve to the app origin and navigate the SPA.
+const absUrl = (u: string): string => {
+  if (!u) return "";
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(u)) return u;
+  try {
+    return new URL(u, api.defaults.baseURL + "/").toString();
+  } catch {
+    return u;
+  }
+};
 
 const normSlug = (s: string): string => {
   try {
@@ -182,9 +206,11 @@ export const normalizeDetail = (raw: any): AnimeDetail => {
     totalEpisode: pickString(d, ["episodes", "total_episode"]) || pickString(info, ["episodes"]) || undefined,
     score: pickString(d, ["score"]) || undefined,
     batchUrl:
-      typeof d.batch === "string"
-        ? d.batch.trim() || undefined
-        : pickString(d.batch ?? {}, ["link", "url", "href"]) || undefined,
+      absUrl(
+        typeof d.batch === "string"
+          ? d.batch.trim()
+          : pickString(d.batch ?? {}, ["otakudesuUrl", "link", "url", "href"])
+      ) || undefined,
     genres: toList(d.genreList ?? d.genres).map(toGenre).filter(Boolean),
     episodes,
     recommendations: toList(d.recommendedAnimeList)
@@ -309,7 +335,8 @@ const resolveStreams = async (d: any): Promise<StreamSource[]> => {
   if (fallback && !streams.some((s) => s.url === fallback)) {
     streams.unshift({ name: "Server Utama", url: fallback });
   }
-  return streams;
+  // Embeddable hosts first so the default server actually plays in-app.
+  return [...streams].sort((a, b) => Number(canEmbedStream(b.url)) - Number(canEmbedStream(a.url)));
 };
 
 const toDownloads = (d: any): DownloadLink[] =>
@@ -321,7 +348,7 @@ const toDownloads = (d: any): DownloadLink[] =>
             .filter(Boolean)
             .join(" ")
             .trim() || "Download",
-        url: pickString(u, ["url", "link"]),
+        url: absUrl(pickString(u, ["url", "link"])),
       }))
     )
     .filter((l) => l.url);

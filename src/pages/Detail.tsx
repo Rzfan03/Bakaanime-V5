@@ -14,6 +14,7 @@ import {
   RefreshCw,
   Share2,
 } from "lucide-react";
+import { Browser } from "@capacitor/browser";
 import { describeError, genreSlug, getDetail } from "../lib/api/anime";
 import Comments from "../components/Comments";
 import { readFavorites, readWatched } from "../lib/storage";
@@ -381,34 +382,35 @@ export default function Detail() {
                 />
               </section>
 
-              {firstEpisode ? (
-                <Link
-                  to={watchPath(firstEpisode.slug)}
-                  className="mx-4 mt-4 flex h-12 items-center justify-center gap-2 rounded-full bg-m3-primary text-base font-medium text-m3-on-primary outline-none transition-colors hover:bg-m3-primary-hover focus-visible:ring-2 focus-visible:ring-m3-on-primary-container"
-                >
-                  <Play size={20} className="fill-current" />
-                  Mulai Nonton
-                </Link>
-              ) : (
-                <span
-                  aria-disabled="true"
-                  className="mx-4 mt-4 flex h-12 items-center justify-center rounded-full bg-m3-on-surface/[0.12] text-base font-medium text-m3-on-surface/40"
-                >
-                  Belum ada episode
-                </span>
-              )}
+              <div className="mx-4 mt-4 flex flex-col gap-2">
+                {firstEpisode ? (
+                  <Link
+                    to={watchPath(firstEpisode.slug)}
+                    className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-m3-primary text-base font-medium text-m3-on-primary outline-none transition-colors hover:bg-m3-primary-hover focus-visible:ring-2 focus-visible:ring-m3-on-primary-container"
+                  >
+                    <Play size={20} className="fill-current" />
+                    Mulai Nonton
+                  </Link>
+                ) : (
+                  <span
+                    aria-disabled="true"
+                    className="flex h-12 w-full items-center justify-center rounded-full bg-m3-on-surface/[0.12] text-base font-medium text-m3-on-surface/40"
+                  >
+                    Belum ada episode
+                  </span>
+                )}
 
-              {detail.batchUrl && (
-                <a
-                  href={detail.batchUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mx-4 mt-2 flex h-11 items-center justify-center gap-2 rounded-full border border-m3-outline-variant text-sm font-medium text-m3-primary outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary"
-                >
-                  <Download size={18} />
-                  Unduh batch
-                </a>
-              )}
+                {detail.batchUrl && (
+                  <button
+                    type="button"
+                    onClick={() => void Browser.open({ url: detail.batchUrl! })}
+                    className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-m3-outline-variant text-sm font-medium text-m3-primary outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary"
+                  >
+                    <Download size={18} />
+                    Unduh batch
+                  </button>
+                )}
+              </div>
 
               {detail.synopsis && (
                 <section className="mt-4 px-4">
@@ -438,7 +440,7 @@ export default function Detail() {
               {detail.genres.length > 0 && (
                 <section
                   aria-label="Genre"
-                  className="mt-2 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                  className="mt-6 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 >
                   {detail.genres.map((g) => (
                     <Link
