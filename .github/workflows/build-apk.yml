@@ -11,8 +11,9 @@ permissions:
 
 jobs:
   build-apk:
-    # Atom sync commits are pushed back only to update the feed file; they must
-    # deploy on Vercel but not build another APK, so skip them here.
+    # Atom sync commits only update the feed file and are pushed with
+    # GITHUB_TOKEN, which never re-triggers Actions; the guard is a belt for
+    # any future token that does. Vercel (git-connected) still deploys them.
     if: "${{ !startsWith(github.event.head_commit.message || '', 'chore: update bakaanime.atom') }}"
     runs-on: ubuntu-latest
     steps:
