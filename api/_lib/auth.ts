@@ -10,6 +10,12 @@ if (!rawSecret || rawSecret.length < 32) {
 }
 const secret = new TextEncoder().encode(rawSecret);
 
+// Tokens live in localStorage, so keep the lifetime short. A proper refresh flow
+// (or httpOnly cookie) is the real fix; skipped here to avoid a login refactor.
+const TOKEN_ISSUER = "bakaanime";
+const TOKEN_AUDIENCE = "bakaanime-app";
+const TOKEN_TTL = "7d";
+
 export type User = {
   id: string;
   email: string;
@@ -26,14 +32,19 @@ export type User = {
 export async function createToken(userId: string): Promise<string> {
   return new SignJWT({ uid: userId })
     .setProtectedHeader({ alg: "HS256" })
+    .setIssuer(TOKEN_ISSUER)
+    .setAudience(TOKEN_AUDIENCE)
     .setIssuedAt()
-    .setExpirationTime("30d")
+    .setExpirationTime(TOKEN_TTL)
     .sign(secret);
 }
 
 async function userIdFromToken(token: string): Promise<string | null> {
   try {
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, secret, {
+      issuer: TOKEN_ISSUER,
+      audience: TOKEN_AUDIENCE,
+    });
     return typeof payload.uid === "string" ? payload.uid : null;
   } catch {
     return null;
