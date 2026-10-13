@@ -463,7 +463,13 @@ function EditSheet({
     setError("");
     setSaving(true);
     try {
-      await onSave({ name: name.trim(), bio: bio.trim(), font: fontId });
+      // font hanya boleh admin/dev (backend 403 kalau user biasa) → jangan kirim
+      const canFont = userRole === "admin" || userRole === "dev";
+      await onSave({
+        name: name.trim(),
+        bio: bio.trim(),
+        ...(canFont ? { font: fontId } : {}),
+      });
       close();
     } catch {
       setError("Telah Terjadi Sebuah Kesalahan.");
