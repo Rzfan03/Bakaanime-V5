@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react"
 import { Home, Search, History, User } from "lucide-react"
 import { NavLink, useLocation } from "react-router"
 import { useAuth } from "../lib/auth"
@@ -15,15 +16,28 @@ const Navigation = () => {
   const avatar = user?.avatar ?? null
 
   const isProfile = location.pathname === "/profile"
+  const [typing, setTyping] = useState(false)
+
+  // The Android keyboard (windowSoftInputMode=adjustResize) shrinks the
+  // viewport, which would shove the fixed tab bar up above the keyboard. Keep
+  // it out of the way while typing instead.
+  useEffect(() => {
+    const base = window.innerHeight
+    const onResize = () => setTyping(window.innerHeight < base - 120)
+    window.addEventListener("resize", onResize)
+    return () => window.removeEventListener("resize", onResize)
+  }, [])
+
+  const hidden = isProfile || typing
 
   return (
     <nav
       className={`pointer-events-none z-50 fixed inset-x-0 bottom-0 flex justify-center px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] ${
-        isProfile
+        hidden
           ? "translate-y-[120%] opacity-0"
           : "translate-y-0 opacity-100"
       }`}
-      aria-hidden={isProfile}
+      aria-hidden={hidden}
     >
       <ul className="pointer-events-auto flex items-center gap-1 rounded-full bg-[color:var(--m3-surface-high)] p-2 shadow-lg shadow-black/40">
         {tabs.map(({ to, label, icon: Icon }) => (

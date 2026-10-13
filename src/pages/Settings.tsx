@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 import { ChevronLeft, ChevronRight, History, Info, LogOut, RotateCcw } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
+import { App } from "@capacitor/app";
 import { useAuth } from "../lib/auth";
 import { useSettings } from "../lib/settings";
 import type { AppFontId, TextSizeId, ThemeId } from "../lib/settings";
@@ -240,12 +241,42 @@ export default function Settings() {
   const { settings, update, reset } = useSettings();
   const [dialog, setDialog] = useState<"history" | "logout" | null>(null);
   const [snack, setSnack] = useState("");
+  const [version, setVersion] = useState<string | null>(null);
 
   useEffect(() => {
     if (!snack) return;
     const t = setTimeout(() => setSnack(""), 3000);
     return () => clearTimeout(t);
   }, [snack]);
+
+  // Show the latest published version so it follows each build automatically.
+  // Falls back to the installed native app version when offline.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      let v: string | null = null;
+      try {
+        const res = await fetch("https://api.github.com/repos/Rzfan03/Bakaanime-V5/releases/latest");
+        if (res.ok) {
+          const { name } = (await res.json()) as { name?: string };
+          v = String(name ?? "").match(/v?(\d+\.\d+\.\d+)/)?.[1] ?? null;
+        }
+      } catch {
+        /* offline or blocked */
+      }
+      if (!v && Capacitor.isNativePlatform()) {
+        try {
+          v = (await App.getInfo()).version;
+        } catch {
+          /* ignore */
+        }
+      }
+      if (!cancelled && v) setVersion(v);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const clearHistory = () => {
     try {
@@ -366,7 +397,7 @@ export default function Settings() {
         <Group>
           <div className={ITEM}>
             <Info size={24} className={icon} />
-            <Texts title="BakaAnime" desc="Versi 5" />
+            <Texts title="BakaAnime" desc={version ? `Versi ${version}` : undefined} />
           </div>
         </Group>
 
