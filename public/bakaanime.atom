@@ -4,11 +4,22 @@
   <id>https://bakaanime-v5.vercel.app/bakaanime.atom</id>
   <link rel="self" href="https://bakaanime-v5.vercel.app/bakaanime.atom"/>
   <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
-  <updated>2026-10-13T23:32:10+07:00</updated>
+  <updated>2026-10-13T23:36:26+07:00</updated>
   <author>
     <name>BakaAnime</name>
   </author>
-                <entry>
+                  <entry>
+    <title>APK v1.0.47</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.47</id>
+    <updated>2026-10-13T23:36:26+07:00</updated>
+    <summary type="html"><![CDATA[- Server video kini lebih banyak yang bisa diputar langsung di dalam aplikasi, tanpa keluar.
+- Jika sebuah server tetap tidak bisa diputar, tersedia tombol "Buka di browser".
+- Bagian Download kini tinggal pilih kualitas dan server, lalu tekan tombol Download.
+- Tombol "Unduh batch" tidak lagi membuka ulang aplikasi dari awal.
+- Tombol "Mulai Nonton" dan "Unduh batch" kini sama lebar dan lebih rapi.]]></summary>
+  </entry>
+<entry>
     <title>APK v1.0.46</title>
     <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
     <id>urn:baka:release:1.0.46</id>
