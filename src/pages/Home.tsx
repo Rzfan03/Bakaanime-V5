@@ -5,9 +5,12 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
 import {
+  Bell,
+  CalendarDays,
   Check,
   ChevronLeft,
   ChevronRight,
+  LayoutGrid,
   LogOut,
   RefreshCw,
   Search,
@@ -28,6 +31,7 @@ import Poster from "../components/Poster";
 import { Dialog } from "../components/Dialog";
 import { getInstalledVersion, getLatestRelease, isNewer } from "../lib/version";
 import type { ReleaseInfo } from "../lib/version";
+import { notifUnread, onNotifChange } from "../lib/notifications";
 
 const BANNER_COUNT = 5;
 
@@ -249,10 +253,13 @@ export default function Home() {
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [progress, setProgress] = useState<ProgressItem[]>([]);
   const [update, setUpdate] = useState<ReleaseInfo | null>(null);
+  const [unread, setUnread] = useState(0);
 
   useEffect(() => {
     setLibrary(readLibrary());
     setProgress(readProgress());
+    setUnread(notifUnread());
+    return onNotifChange(() => setUnread(notifUnread()));
   }, []);
 
   // Prompt to update when the installed app is behind the latest release.
@@ -334,6 +341,14 @@ export default function Home() {
             </IconLink>
             <OverflowMenu
               items={[
+                {
+                  label: "Notifikasi",
+                  icon: <Bell size={19} />,
+                  to: "/notifications",
+                  badge: unread,
+                },
+                { label: "Jadwal rilis", icon: <CalendarDays size={19} />, to: "/schedule" },
+                { label: "Jelajah genre", icon: <LayoutGrid size={19} />, to: "/genres" },
                 { label: "Profil", icon: <User size={19} />, to: "/profile" },
                 { label: "Pengaturan", icon: <Settings size={19} />, to: "/settings" },
                 { label: "Keluar", icon: <LogOut size={19} />, onClick: logout, danger: true },

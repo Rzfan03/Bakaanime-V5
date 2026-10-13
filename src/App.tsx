@@ -8,6 +8,10 @@ import Detail from "./pages/Detail";
 import Watch from "./pages/Watch";
 import Search from "./pages/Search";
 import Library from "./pages/Library";
+import Genres from "./pages/Genres";
+import Genre from "./pages/Genre";
+import Schedule from "./pages/Schedule";
+import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
@@ -15,7 +19,7 @@ import SplashScreen from "./components/SplashScreen";
 import PageTransition from "./components/PageTransition";
 import { useAuth } from "./lib/auth";
 import { useSettings } from "./lib/settings";
-import { checkNewEpisodes } from "./lib/notifications";
+import { runNotifCheck } from "./lib/notifications";
 import { AuthenticateWithRedirectCallback } from "@clerk/react";
 
 function ProtectedLayout() {
@@ -58,14 +62,26 @@ export default function App() {
     };
   }, [navigate]);
 
-  // New-episode notifications for Library anime: on launch and every resume.
+  // New-episode notifications for Library anime: on launch, native resume, and
+  // when the web tab becomes visible again.
   useEffect(() => {
-    if (!Capacitor.isNativePlatform() || !settings.notifications) return;
-    const run = () => void checkNewEpisodes().catch(() => {});
+    if (!settings.notifications) return;
+    const run = () => void runNotifCheck().catch(() => {});
     run();
-    const handle = CapacitorApp.addListener("resume", run);
+
+    let removeResume: (() => void) | undefined;
+    if (Capacitor.isNativePlatform()) {
+      void CapacitorApp.addListener("resume", run).then((h) => {
+        removeResume = () => void h.remove();
+      });
+    }
+    const onVisible = () => {
+      if (document.visibilityState === "visible") run();
+    };
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
-      void handle.then((h) => h.remove());
+      removeResume?.();
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [settings.notifications]);
 
@@ -86,6 +102,10 @@ export default function App() {
       <Route element={<ProtectedLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/genres" element={<Genres />} />
+        <Route path="/genre/:slug" element={<Genre />} />
+        <Route path="/schedule" element={<Schedule />} />
+        <Route path="/notifications" element={<Notifications />} />
         <Route path="/library" element={<Library />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/settings" element={<Settings />} />

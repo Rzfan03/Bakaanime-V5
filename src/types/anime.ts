@@ -38,8 +38,21 @@ export interface AnimeDetail {
   released?: string;
   duration?: string;
   totalEpisode?: string;
+  score?: string;
+  batchUrl?: string;
   genres: string[];
   episodes: Episode[];
+  recommendations: AnimeItem[];
+}
+
+export interface Genre {
+  title: string;
+  slug: string;
+}
+
+export interface ScheduleDay {
+  day: string;
+  items: AnimeItem[];
 }
 
 export interface StreamSource {

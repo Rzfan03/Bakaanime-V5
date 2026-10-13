@@ -7,19 +7,20 @@ import {
   Check,
   ChevronDown,
   Clock,
+  Download,
   Film,
   Heart,
   Play,
   RefreshCw,
   Share2,
 } from "lucide-react";
-import { describeError, getDetail } from "../lib/api/anime";
+import { describeError, genreSlug, getDetail } from "../lib/api/anime";
 import Comments from "../components/Comments";
 import { readFavorites, readWatched } from "../lib/storage";
 import { addFavorite, removeFavorite } from "../lib/favorites";
 import { backend } from "../lib/api/backend";
 import { useAuth } from "../lib/auth";
-import type { AnimeDetail, Episode } from "../types/anime";
+import type { AnimeDetail, AnimeItem, Episode } from "../types/anime";
 import Poster from "../components/Poster";
 
 const EPISODE_PREVIEW = 8;
@@ -89,6 +90,27 @@ function EpisodeItem({ episode, watched }: { episode: Episode; watched: boolean 
         )}
       </Link>
     </li>
+  );
+}
+
+function RecommendationCard({ item }: { item: AnimeItem }) {
+  return (
+    <Link
+      to={`/detail/${encodeURIComponent(item.seriesSlug)}`}
+      className="w-28 shrink-0 snap-start outline-none"
+    >
+      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-[color:var(--m3-surface-high)] focus-visible:ring-2 focus-visible:ring-m3-primary">
+        <Poster
+          src={item.poster}
+          alt=""
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-300 hover:scale-105 motion-reduce:transition-none"
+        />
+      </div>
+      <h3 className="mt-2 line-clamp-2 text-xs font-medium leading-4 text-m3-on-surface">
+        {item.title}
+      </h3>
+    </Link>
   );
 }
 
@@ -226,7 +248,9 @@ export default function Detail() {
   };
 
   const statusLine = detail
-    ? [detail.status, detail.type].filter(Boolean).join(" • ")
+    ? [detail.score ? `★ ${detail.score}` : "", detail.status, detail.type]
+        .filter(Boolean)
+        .join(" • ")
     : "";
 
   const episodes = detail?.episodes ?? [];
@@ -374,6 +398,18 @@ export default function Detail() {
                 </span>
               )}
 
+              {detail.batchUrl && (
+                <a
+                  href={detail.batchUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mx-4 mt-2 flex h-11 items-center justify-center gap-2 rounded-full border border-m3-outline-variant text-sm font-medium text-m3-primary outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary"
+                >
+                  <Download size={18} />
+                  Unduh batch
+                </a>
+              )}
+
               {detail.synopsis && (
                 <section className="mt-4 px-4">
                   <p
@@ -405,12 +441,13 @@ export default function Detail() {
                   className="mt-2 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 >
                   {detail.genres.map((g) => (
-                    <span
+                    <Link
                       key={g}
-                      className="flex h-8 shrink-0 items-center whitespace-nowrap rounded-full bg-m3-primary-container px-3 text-sm font-medium text-m3-on-primary-container"
+                      to={`/genre/${encodeURIComponent(genreSlug(g))}`}
+                      className="flex h-8 shrink-0 items-center whitespace-nowrap rounded-full bg-m3-primary-container px-3 text-sm font-medium text-m3-on-primary-container outline-none transition-colors hover:bg-m3-primary-container-hover focus-visible:ring-2 focus-visible:ring-m3-primary"
                     >
                       {g}
-                    </span>
+                    </Link>
                   ))}
                 </section>
               )}
@@ -457,6 +494,17 @@ export default function Detail() {
                   </>
                 )}
               </section>
+
+              {detail.recommendations.length > 0 && (
+                <section className="mt-8">
+                  <h2 className="px-4 pb-2 text-[22px] font-medium leading-7">Rekomendasi</h2>
+                  <div className="flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {detail.recommendations.map((rec) => (
+                      <RecommendationCard key={rec.slug} item={rec} />
+                    ))}
+                  </div>
+                </section>
+              )}
 
               <Comments animeSlug={seriesSlug} />
             </>

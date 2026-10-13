@@ -6,7 +6,7 @@ import { Capacitor } from "@capacitor/core";
 import { useAuth } from "../lib/auth";
 import { useSettings } from "../lib/settings";
 import type { AppFontId, TextSizeId, ThemeId } from "../lib/settings";
-import { ensureNotificationPermission } from "../lib/notifications";
+import { requestNotifPermission } from "../lib/notifications";
 import { getInstalledVersion } from "../lib/version";
 import { FramedAvatar } from "../components/FramedAvatar";
 import { Dialog } from "../components/Dialog";
@@ -304,7 +304,7 @@ export default function Settings() {
                 checked={settings.notifications}
                 onChange={(notifications) => {
                   update({ notifications });
-                  if (notifications) void ensureNotificationPermission();
+                  if (notifications) void requestNotifPermission();
                 }}
               />
             </Group>

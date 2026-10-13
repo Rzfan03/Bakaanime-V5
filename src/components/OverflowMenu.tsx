@@ -9,6 +9,7 @@ export type MenuItem = {
   to?: string;
   onClick?: () => void;
   danger?: boolean;
+  badge?: number;
 };
 
 const itemClass = (danger?: boolean) =>
@@ -62,8 +63,19 @@ export default function OverflowMenu({
           role="menu"
           className="absolute right-0 top-[calc(100%+4px)] z-50 min-w-[200px] rounded-2xl bg-[color:var(--m3-surface-high)] p-2 shadow-lg shadow-black/50"
         >
-          {items.map((item) =>
-            item.to ? (
+          {items.map((item) => {
+            const content = (
+              <>
+                {item.icon}
+                <span className="flex-1">{item.label}</span>
+                {typeof item.badge === "number" && item.badge > 0 && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-m3-primary px-1.5 text-[11px] font-bold text-m3-on-primary">
+                    {item.badge > 99 ? "99+" : item.badge}
+                  </span>
+                )}
+              </>
+            );
+            return item.to ? (
               <Link
                 key={item.label}
                 to={item.to}
@@ -71,8 +83,7 @@ export default function OverflowMenu({
                 onClick={() => setOpen(false)}
                 className={itemClass(item.danger)}
               >
-                {item.icon}
-                {item.label}
+                {content}
               </Link>
             ) : (
               <button
@@ -85,11 +96,10 @@ export default function OverflowMenu({
                 }}
                 className={itemClass(item.danger)}
               >
-                {item.icon}
-                {item.label}
+                {content}
               </button>
-            ),
-          )}
+            );
+          })}
         </div>
       )}
     </div>

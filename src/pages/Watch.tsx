@@ -14,7 +14,7 @@ import {
 import { Capacitor } from "@capacitor/core";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { StatusBar } from "@capacitor/status-bar";
-import { describeError, getDetail, getEpisode, getHome } from "../lib/api/anime";
+import { describeError, getDetail, getEpisode, getHome, genreSlug } from "../lib/api/anime";
 import { markWatched, readFavorites } from "../lib/storage";
 import type { FavoriteItem } from "../lib/storage";
 import { writeProgress } from "../lib/progress";
@@ -193,7 +193,12 @@ export default function Watch() {
   }, []);
 
   useEffect(() => {
+    if (!detail) return;
     let cancelled = false;
+    if (detail.recommendations.length > 0) {
+      setRecs(detail.recommendations);
+      return;
+    }
     getHome(1)
       .then((res) => {
         if (!cancelled) setRecs(res.items);
@@ -204,7 +209,7 @@ export default function Watch() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [detail]);
 
   useEffect(() => {
     let cancelled = false;
@@ -554,12 +559,13 @@ export default function Watch() {
                 className="mt-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
                 {detail.genres.map((g) => (
-                  <span
+                  <Link
                     key={g}
-                    className="flex h-8 shrink-0 items-center whitespace-nowrap rounded-full bg-m3-primary-container px-3 text-sm font-medium text-m3-on-primary-container"
+                    to={`/genre/${encodeURIComponent(genreSlug(g))}`}
+                    className="flex h-8 shrink-0 items-center whitespace-nowrap rounded-full bg-m3-primary-container px-3 text-sm font-medium text-m3-on-primary-container outline-none transition-colors hover:bg-m3-primary-container-hover focus-visible:ring-2 focus-visible:ring-m3-primary"
                   >
                     {g}
-                  </span>
+                  </Link>
                 ))}
               </section>
             )}

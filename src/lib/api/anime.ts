@@ -6,6 +6,8 @@ import type {
   DownloadLink,
   Episode,
   EpisodeDetail,
+  Genre,
+  ScheduleDay,
   StreamSource,
 } from "../../types/anime";
 
@@ -93,13 +95,58 @@ const fetchList = async (
   };
 };
 
-export const getHome = (page = 1) => fetchList("/ongoing-anime", page);
+// List browsing fails over to Animekompi when Otakudesu errors (down, rate-limit).
+// Detail/episode stay on Otakudesu; its episode streams already carry mirrors.
+const withListFallback = async (
+  primary: () => Promise<AnimeListResult>,
+  secondary: () => Promise<AnimeListResult>
+): Promise<AnimeListResult> => {
+  try {
+    return await primary();
+  } catch {
+    return secondary();
+  }
+};
+
+export const getHome = (page = 1) =>
+  withListFallback(
+    () => fetchList("/ongoing-anime", page),
+    () => fetchList("/animekompi/home", page)
+  );
 
 export const searchAnime = (keyword: string, page = 1) =>
-  fetchList(`/search/${encodeURIComponent(keyword)}`, page);
+  withListFallback(
+    () => fetchList(`/search/${encodeURIComponent(keyword)}`, page),
+    () => fetchList("/animekompi/search", page, { q: keyword })
+  );
 
 export const getByGenre = (slug: string, page = 1) =>
   fetchList(`/genre/${encodeURIComponent(slug)}`, page);
+
+export const getGenres = async (): Promise<Genre[]> => {
+  const res = await api.get("/genre");
+  const raw =
+    res.data?.data?.genreList ?? res.data?.data ?? res.data?.genreList;
+  return toList(raw)
+    .map((g) => ({
+      title: pickString(g, ["title", "name"]),
+      slug: pickString(g, ["genreId", "slug", "id"]),
+    }))
+    .filter((g) => g.title && g.slug);
+};
+
+export const getSchedule = async (): Promise<ScheduleDay[]> => {
+  const res = await api.get("/schedule");
+  const raw = res.data?.data ?? res.data;
+  return toList(raw)
+    .map((d) => ({
+      day: pickString(d, ["day"]),
+      items: toList(d?.anime_list ?? d?.animeList)
+        .map(toItem)
+        .filter((a) => a.slug && a.title),
+    }))
+    .filter((d) => d.day && d.items.length > 0);
+};
 
 const toEpisode = (e: any): Episode => {
   const slug = normSlug(pickString(e, ["episodeId", "slug", "id"]));
@@ -133,8 +180,16 @@ export const normalizeDetail = (raw: any): AnimeDetail => {
     released: pickString(d, ["aired", "released"]) || pickString(info, ["released", "dirilis"]) || undefined,
     duration: pickString(d, ["duration"]) || pickString(info, ["duration", "durasi"]) || undefined,
     totalEpisode: pickString(d, ["episodes", "total_episode"]) || pickString(info, ["episodes"]) || undefined,
+    score: pickString(d, ["score"]) || undefined,
+    batchUrl:
+      typeof d.batch === "string"
+        ? d.batch.trim() || undefined
+        : pickString(d.batch ?? {}, ["link", "url", "href"]) || undefined,
     genres: toList(d.genreList ?? d.genres).map(toGenre).filter(Boolean),
     episodes,
+    recommendations: toList(d.recommendedAnimeList)
+      .map(toItem)
+      .filter((a) => a.slug && a.title),
   };
 
   if (!detail.title && episodes.length === 0) {
@@ -292,3 +347,8 @@ export const getEpisode = async (slug: string): Promise<EpisodeDetail> => {
 };
 
 export const describeError = (_e: unknown): string => "Telah Terjadi Sebuah Kesalahan.";
+
+// Genre names are shown as titles ("Sci-Fi"); the browse endpoint keys on slugs
+// ("sci-fi"). Lowercasing/space-swapping matches Otakudesu's genre ids.
+export const genreSlug = (title: string): string =>
+  title.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
