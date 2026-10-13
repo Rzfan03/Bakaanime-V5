@@ -4,11 +4,18 @@
   <id>https://bakaanime-v5.vercel.app/bakaanime.atom</id>
   <link rel="self" href="https://bakaanime-v5.vercel.app/bakaanime.atom"/>
   <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
-  <updated>2026-10-13T21:13:07+07:00</updated>
+  <updated>2026-10-13T21:21:51+07:00</updated>
   <author>
     <name>BakaAnime</name>
   </author>
-      <entry>
+        <entry>
+    <title>APK v1.0.42</title>
+    <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
+    <id>urn:baka:release:1.0.42</id>
+    <updated>2026-10-13T21:21:51+07:00</updated>
+    <summary type="html"><![CDATA[- document atom sync + Vercel auto-deploy mechanism]]></summary>
+  </entry>
+<entry>
     <title>APK v1.0.41</title>
     <link rel="alternate" href="https://github.com/Rzfan03/Bakaanime-V5/releases/tag/latest"/>
     <id>urn:baka:release:1.0.41</id>
