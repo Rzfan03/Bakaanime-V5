@@ -9,6 +9,13 @@ import { initSettings } from './lib/settings.ts'
 
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string
 
+// Di *.vercel.app Clerk di-proxy lewat /__clerk (tak bisa CNAME). Untuk lokal
+// & APK (https://localhost) bicara langsung ke clerk.accounts.dev.
+const CLERK_PROXY_URL =
+  typeof window !== "undefined" && window.location.hostname.endsWith(".vercel.app")
+    ? "/__clerk"
+    : undefined
+
 // muat font Pixelify Sans
 const pixelFont = document.createElement('link')
 pixelFont.rel = 'stylesheet'
@@ -37,6 +44,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ClerkProvider
       publishableKey={CLERK_PUBLISHABLE_KEY}
+      proxyUrl={CLERK_PROXY_URL}
       afterSignOutUrl="/login"
       signInFallbackRedirectUrl="/"
       signUpFallbackRedirectUrl="/"
