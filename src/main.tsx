@@ -9,11 +9,16 @@ import { initSettings } from './lib/settings.ts'
 
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string
 
-// Di *.vercel.app Clerk di-proxy lewat /__clerk (tak bisa CNAME). Untuk lokal
-// & APK (https://localhost) bicara langsung ke clerk.accounts.dev.
-const CLERK_PROXY_URL =
-  typeof window !== "undefined" && window.location.hostname.endsWith(".vercel.app")
-    ? "/__clerk"
+// Di *.vercel.app Clerk di-proxy lewat /__clerk (tak bisa CNAME).
+// APK (Capacitor, origin https://localhost) tak bisa pakai proxy relatif, jadi
+// instance produksi (pk_live) diarahkan ke proxy absolut di domain web.
+// Dev lokal (pk_test) tetap bicara langsung ke clerk.accounts.dev.
+const isProdKey = (CLERK_PUBLISHABLE_KEY ?? "").startsWith("pk_live_")
+const hostname = typeof window !== "undefined" ? window.location.hostname : ""
+const CLERK_PROXY_URL = hostname.endsWith(".vercel.app")
+  ? "/__clerk"
+  : isProdKey
+    ? "https://bakaanime-v5.vercel.app/__clerk"
     : undefined
 
 // muat font Pixelify Sans

@@ -76,6 +76,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [clerkLoaded, isSignedIn, clerkUser, exchange, refresh]);
 
+  // Jaring pengaman: kalau Clerk tak kunjung siap (mis. FAPI tak terjangkau di
+  // APK), jangan gantung di splash — lanjut pakai token sendiri.
+  useEffect(() => {
+    if (clerkLoaded) return;
+    const t = setTimeout(() => {
+      void refresh();
+      setLoading(false);
+    }, 8000);
+    return () => clearTimeout(t);
+  }, [clerkLoaded, refresh]);
+
   const loginWithKey = useCallback(async (key: string) => {
     const res = await backend.loginWithKey(key);
     setToken(res.token);
