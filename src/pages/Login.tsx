@@ -73,7 +73,8 @@ export default function Login() {
         redirectUrl: window.location.origin + "/sso-callback",
         redirectUrlComplete: from,
       });
-    } catch {
+    } catch (e) {
+      console.error("[login google]", e);
       setError("Telah Terjadi Sebuah Kesalahan.");
       setBusyGoogle(false);
     }

@@ -19,16 +19,12 @@ function fapiUrlForPk(pk?: string): string | undefined {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Web memanggil proxy same-origin (tanpa CORS). Native (APK) lintas-origin
-  // dari https://app.bakaanime-v5.vercel.app → butuh CORS + expose `authorization`
-  // (dipakai clerk native bearer via __internal_onAfterResponse).
-  const NATIVE_ORIGINS = [
-    "https://app.bakaanime-v5.vercel.app",
-    "https://localhost",
-    "http://localhost",
-  ];
+  // Web memanggil proxy same-origin (tanpa CORS). Native (APK / livereload)
+  // lintas-origin → refleksikan origin apa pun + expose `authorization` (dipakai
+  // bearer native via __internal_onAfterResponse). Aman: tanpa cookie
+  // (credentials: omit), sama seperti FAPI publik Clerk yang memang CORS-open.
   const origin = req.headers.origin as string | undefined;
-  if (origin && NATIVE_ORIGINS.includes(origin)) {
+  if (origin) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
