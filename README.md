@@ -258,5 +258,4 @@ When rebuilding your own instance, update the hard-coded references:
 
 ## License
 
-No license has been chosen yet. Add a `LICENSE` file before distributing or
-accepting contributions.
+Released under the [MIT License](LICENSE).
