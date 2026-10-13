@@ -265,7 +265,6 @@ export default function Home() {
       const latest = await getLatestRelease();
       if (cancelled || !current || !latest) return;
       if (!isNewer(latest.version, current)) return;
-      if (localStorage.getItem("skippedUpdate") === latest.version) return;
       setUpdate(latest);
     })();
     return () => {
@@ -499,10 +498,7 @@ export default function Home() {
             void Browser.open({ url: update.apkUrl });
             setUpdate(null);
           }}
-          onCancel={() => {
-            localStorage.setItem("skippedUpdate", update.version);
-            setUpdate(null);
-          }}
+          onCancel={() => setUpdate(null)}
         />
       )}
     </div>
