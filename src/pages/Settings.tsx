@@ -7,7 +7,7 @@ import { useAuth } from "../lib/auth";
 import { useSettings } from "../lib/settings";
 import type { AppFontId, TextSizeId, ThemeId } from "../lib/settings";
 import { ensureNotificationPermission } from "../lib/notifications";
-import { getInstalledVersion, getLatestRelease } from "../lib/version";
+import { getInstalledVersion } from "../lib/version";
 import { FramedAvatar } from "../components/FramedAvatar";
 import { Dialog } from "../components/Dialog";
 
@@ -194,12 +194,11 @@ export default function Settings() {
     return () => clearTimeout(t);
   }, [snack]);
 
-  // Show the latest published version so it follows each build automatically.
-  // Falls back to the installed native app version when offline.
+  // The app's own version, read from the installed build — no network call.
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const v = (await getLatestRelease())?.version ?? (await getInstalledVersion());
+      const v = await getInstalledVersion();
       if (!cancelled && v) setVersion(v);
     })();
     return () => {
