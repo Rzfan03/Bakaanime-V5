@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # Version bumps automatically per build: 1.0.1, 1.0.2, ... (patch = run number).
       - name: Set version from build number
@@ -82,7 +84,16 @@ jobs:
         run: |
           APK="$(ls android/app/build/outputs/apk/release/*.apk | head -1)"
           VER="1.0.${{ github.run_number }}"
-          NOTES="v$VER · Commit ${GITHUB_SHA::7} · $(date -u +%Y-%m-%dT%H:%MZ)"
+          BEFORE="${{ github.event.before }}"
+          if [ -n "$BEFORE" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            RANGE="$BEFORE..$GITHUB_SHA"
+          else
+            RANGE="HEAD~1..HEAD"
+          fi
+          # Changelog shown in the update dialog: one bullet per commit, no type prefix.
+          NOTES="$(git log --pretty=format:'%s' --no-merges "$RANGE" 2>/dev/null \
+            | sed -E 's/^[a-z]+(\([^)]*\))?!?: //' | sed 's/^/- /')"
+          [ -n "$NOTES" ] || NOTES="- Perbaikan dan peningkatan"
           gh release view latest >/dev/null 2>&1 \
             || gh release create latest --title "APK v$VER" --notes "$NOTES"
           gh release upload latest "$APK" --clobber
