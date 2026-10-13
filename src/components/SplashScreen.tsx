@@ -14,6 +14,7 @@ export default function SplashScreen({ onDone }: Props) {
 
   const [progress, setProgress] = useState(0)
   const [leaving, setLeaving] = useState(false)
+  const [videoFailed, setVideoFailed] = useState(false)
   const [reduceMotion] = useState(
     () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   )
@@ -30,6 +31,13 @@ export default function SplashScreen({ onDone }: Props) {
     setTimeout(() => onDoneRef.current(), FADE_MS)
   }
 
+  function handleVideoError() {
+    // video tak bisa diputar → tampilkan poster, jangan langsung tutup splash
+    setVideoFailed(true)
+    hideNative()
+    setTimeout(finish, 1200)
+  }
+
   useEffect(() => {
     // splash native hanya menutupi jeda awal; setelah ini poster/video tampil
     const hideTimer = setTimeout(hideNative, 1000)
@@ -40,7 +48,7 @@ export default function SplashScreen({ onDone }: Props) {
     const v = videoRef.current
     if (v) {
       v.muted = true
-      v.play().catch(finish)
+      v.play().catch(handleVideoError)
     }
 
     return () => {
@@ -58,7 +66,7 @@ export default function SplashScreen({ onDone }: Props) {
       }`}
       style={{ transitionDuration: `${FADE_MS}ms` }}
     >
-      {reduceMotion ? (
+      {reduceMotion || videoFailed ? (
         <img
           src="/splash-poster.jpg"
           alt=""
@@ -81,7 +89,7 @@ export default function SplashScreen({ onDone }: Props) {
             if (v.duration) setProgress(v.currentTime / v.duration)
           }}
           onEnded={finish}
-          onError={finish}
+          onError={handleVideoError}
           className="absolute inset-0 h-full w-full object-cover"
         />
       )}
