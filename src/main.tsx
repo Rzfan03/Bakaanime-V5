@@ -13,11 +13,13 @@ const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as stri
 const isNative = Capacitor.isNativePlatform()
 const hostname = typeof window !== "undefined" ? window.location.hostname : ""
 
-// Web: di *.vercel.app Clerk di-proxy relatif lewat /__clerk (tak bisa CNAME).
-// Native: proxy ditangani di dalam NativeClerkProvider (lib/clerk/native.tsx).
+// Web: pakai proxy /__clerk di produksi (*.vercel.app) dan di `vercel dev`
+// (localhost:3000 menyajikan rewrite + fungsi api yang sama). pk_live wajib
+// lewat proxy karena host FAPI-nya tak punya DNS. Native: lihat lib/clerk/native.tsx.
+const isLocalHost = hostname === "localhost" || hostname === "127.0.0.1"
 const CLERK_PROXY_URL = isNative
   ? undefined
-  : hostname.endsWith(".vercel.app")
+  : hostname.endsWith(".vercel.app") || isLocalHost
     ? "/__clerk"
     : undefined
 

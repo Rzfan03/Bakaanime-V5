@@ -15,6 +15,10 @@ const config: CapacitorConfig = {
       'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
   },
   plugins: {
+    // Wajib untuk Clerk native: HTTP native tak menambah header `Origin`
+    // otomatis, jadi tak bentrok dengan `Authorization`
+    // (origin_authorization_headers_conflict). Cookie juga tak berlaku di sini.
+    CapacitorHttp: { enabled: true },
     SplashScreen: {
       backgroundColor: '#141218',
       androidScaleType: 'CENTER_CROP',
