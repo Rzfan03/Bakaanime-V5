@@ -1,83 +1,58 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { Readable } from "node:stream";
+import { clerkFrontendApiProxy } from "@clerk/backend/proxy";
 
 // Proxy Clerk Frontend API. Di domain *.vercel.app tak bisa CNAME ke Clerk,
 // jadi browser memanggil /__clerk/* (lihat vercel.json) dan diteruskan ke sini.
+// Pakai implementasi resmi @clerk/backend: menangani Clerk-Proxy-Url,
+// Clerk-Secret-Key, Host, X-Forwarded-*, rewrite Location, dan set-cookie.
 // Docs: https://clerk.com/docs/guides/dashboard/dns-domains/proxy-fapi
-const FAPI = (process.env.CLERK_FAPI_URL ?? "https://happy-bluebird-3868.clerk.accounts.dev").replace(/\/$/, "");
-const APP_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
-  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  : "https://bakaanime-v5.vercel.app";
+export const config = { api: { bodyParser: false } };
 
-const PASSTHROUGH_HEADERS = [
-  "content-type",
-  "cache-control",
-  "location",
-  "etag",
-  "expires",
-  "vary",
-  "access-control-allow-origin",
-  "access-control-allow-credentials",
-  "access-control-allow-methods",
-  "access-control-allow-headers",
-];
+// Dev instance (pk_test) dilayani host-nya sendiri; produksi lewat gateway Clerk.
+// ponytail: frontend-api.clerk.dev mengasumsikan pk_live; ganti bila Clerk ubah skema.
+function fapiUrlForPk(pk?: string): string | undefined {
+  if (!pk) return undefined;
+  if (pk.startsWith("pk_live_")) return "https://frontend-api.clerk.dev";
+  const host = Buffer.from(pk.replace(/^pk_test_/, ""), "base64").toString("utf8").replace(/\$$/, "");
+  return `https://${host}`;
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const secret = process.env.CLERK_SECRET_KEY;
-  if (!secret) {
-    res.status(500).json({ error: "clerk_secret_missing" });
-    return;
-  }
+  // Vercel rewrite mengubah path jadi /api/clerk-proxy?clerkPath=*, sedangkan
+  // clerkFrontendApiProxy butuh pathname asli /__clerk/* → rekonstruksi.
+  const url = new URL(req.url ?? "/", `https://${req.headers.host ?? "localhost"}`);
+  const clerkPath = url.searchParams.get("clerkPath") ?? "";
+  url.searchParams.delete("clerkPath");
 
-  const rawPath = req.query.clerkPath;
-  const path = (Array.isArray(rawPath) ? rawPath.join("/") : (rawPath ?? "")).replace(/^\/+/, "");
-
-  const params = new URLSearchParams();
-  for (const [k, v] of Object.entries(req.query)) {
-    if (k === "clerkPath") continue;
-    if (Array.isArray(v)) v.forEach((item) => params.append(k, item));
-    else if (v != null) params.append(k, String(v));
-  }
-  const qs = params.toString();
-
-  const headers: Record<string, string> = {
-    "Clerk-Proxy-Url": `${APP_URL}/__clerk`,
-    "Clerk-Secret-Key": secret,
-  };
-  const xff = (req.headers["x-forwarded-for"] as string | undefined)?.split(",")[0]?.trim();
-  if (xff) headers["X-Forwarded-For"] = xff;
-  for (const [k, v] of Object.entries(req.headers)) {
-    if (["host", "connection", "content-length", "x-forwarded-for"].includes(k) || typeof v !== "string") continue;
-    headers[k] = v;
-  }
+  const target = new URL(`/__clerk/${clerkPath}`, url.origin);
+  target.search = url.search;
 
   const method = (req.method ?? "GET").toUpperCase();
-  const hasBody = method !== "GET" && method !== "HEAD";
-  const body =
-    !hasBody || req.body === undefined || req.body === null || req.body === ""
-      ? undefined
-      : typeof req.body === "string"
-        ? req.body
-        : JSON.stringify(req.body);
+  const withBody = method !== "GET" && method !== "HEAD";
 
-  const target = `${FAPI}/${path}${qs ? `?${qs}` : ""}`;
+  const request = new Request(target, {
+    method,
+    headers: req.headers as Record<string, string>,
+    body: withBody ? (Readable.toWeb(req) as unknown as ReadableStream) : undefined,
+    duplex: "half",
+  } as RequestInit);
 
-  try {
-    const upstream = await fetch(target, {
-      method,
-      headers,
-      body,
-    });
-    const content = Buffer.from(await upstream.arrayBuffer());
-    res.status(upstream.status);
-    for (const k of PASSTHROUGH_HEADERS) {
-      const v = upstream.headers.get(k);
-      if (v) res.setHeader(k, v);
-    }
-    const setCookies = upstream.headers.getSetCookie?.();
-    if (setCookies && setCookies.length) res.setHeader("set-cookie", setCookies);
-    res.end(content);
-  } catch (e) {
-    console.error("[clerk-proxy] failed", e);
-    res.status(502).json({ error: "clerk_proxy_failed" });
-  }
+  const publishableKey =
+    process.env.CLERK_PUBLISHABLE_KEY ?? process.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+  const response = await clerkFrontendApiProxy(request, {
+    publishableKey,
+    secretKey: process.env.CLERK_SECRET_KEY,
+    proxyPath: "/__clerk",
+    fapiUrl: process.env.CLERK_FAPI_URL ?? fapiUrlForPk(publishableKey),
+  });
+
+  res.status(response.status);
+  response.headers.forEach((value, key) => {
+    if (key.toLowerCase() !== "set-cookie") res.setHeader(key, value);
+  });
+  const cookies = response.headers.getSetCookie();
+  if (cookies.length) res.setHeader("set-cookie", cookies);
+  res.end(Buffer.from(await response.arrayBuffer()));
 }
