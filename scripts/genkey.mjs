@@ -1,7 +1,9 @@
 import { randomBytes, createHash } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 
-const [label = "", role = "dev"] = process.argv.slice(2);
+const [label = "", roleArg = ""] = process.argv.slice(2);
+// Hanya "dev"/"admin" yang dihormati; selain itu user biasa.
+const role = roleArg === "dev" || roleArg === "admin" ? roleArg : "user";
 const url = process.env.DATABASE_URL;
 if (!url) {
   console.error("DATABASE_URL kosong. Jalankan lewat npm (lihat package.json).");

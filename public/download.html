@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#141218" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="noindex" />
+    <title>Unduh APK · BakaAnime</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      :root {
+        --surface: #141218;
+        --container: #211f26;
+        --high: #2b2930;
+        --primary: #d0bcff;
+        --on-primary: #381e72;
+        --on-surface: #e6e0e9;
+        --variant: #cac4d0;
+        --outline: #49454f;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        background: var(--surface);
+        color: var(--on-surface);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      main {
+        width: 100%;
+        max-width: 420px;
+        background: var(--container);
+        border-radius: 28px;
+        padding: 32px 24px;
+        text-align: center;
+      }
+      .logo {
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 16px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #4f378b, #2b1a4e);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+      }
+      h1 { margin: 0 0 4px; font-size: 24px; font-weight: 700; }
+      .sub { margin: 0 0 24px; font-size: 14px; color: var(--variant); }
+      .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        height: 56px;
+        border-radius: 999px;
+        background: var(--primary);
+        color: var(--on-primary);
+        font-size: 16px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: background 0.2s;
+      }
+      .btn:hover { background: #dccbff; }
+      .btn:active { transform: translateY(1px); }
+      .meta {
+        margin-top: 16px;
+        font-size: 13px;
+        color: var(--variant);
+        min-height: 18px;
+      }
+      .meta b { color: var(--on-surface); font-weight: 600; }
+      ol {
+        text-align: left;
+        margin: 24px 0 0;
+        padding: 0 0 0 20px;
+        font-size: 13px;
+        line-height: 1.9;
+        color: var(--variant);
+      }
+      ol b { color: var(--on-surface); font-weight: 600; }
+      .note {
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid var(--outline);
+        font-size: 12px;
+        color: #938f99;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="logo">🍥</div>
+      <h1>BakaAnime APK</h1>
+      <p class="sub">Versi Android terbaru</p>
+
+      <a
+        id="dl"
+        class="btn"
+        href="https://github.com/Rzfan03/Bakaanime-V5/releases/download/latest/app-release.apk"
+        download
+      >
+        Unduh APK
+      </a>
+
+      <p class="meta" id="meta">Memuat info build…</p>
+
+      <ol>
+        <li>Ketuk <b>Unduh APK</b> di atas.</li>
+        <li>Buka file yang terunduh.</li>
+        <li>Kalau diminta, izinkan <b>instal dari sumber tidak dikenal</b>.</li>
+        <li>Selesai — buka <b>BakaAnime</b>.</li>
+      </ol>
+
+      <p class="note">Halaman ini selalu menautkan build terbaru.</p>
+    </main>
+
+    <script>
+      (function () {
+        var meta = document.getElementById("meta");
+        var dl = document.getElementById("dl");
+        var api =
+          "https://api.github.com/repos/Rzfan03/Bakaanime-V5/releases/tags/latest";
+        fetch(api)
+          .then(function (r) {
+            if (!r.ok) throw new Error("no release");
+            return r.json();
+          })
+          .then(function (rel) {
+            var asset = (rel.assets || [])[0];
+            if (asset && asset.browser_download_url) dl.href = asset.browser_download_url;
+            var parts = [];
+            if (rel.published_at) {
+              parts.push(
+                "<b>" +
+                  new Date(rel.published_at).toLocaleString("id-ID", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }) +
+                  "</b>"
+              );
+            }
+            if (asset && asset.size) {
+              parts.push((asset.size / 1048576).toFixed(1) + " MB");
+            }
+            meta.innerHTML = parts.length ? "Build " + parts.join(" · ") : "Build terbaru siap.";
+          })
+          .catch(function () {
+            meta.textContent = "Build terbaru siap diunduh.";
+          });
+      })();
+    </script>
+  </body>
+</html>
