@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 import { ChevronLeft, ChevronRight, History, Info, LogOut, RotateCcw } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
 import { useAuth } from "../lib/auth";
 import { useSettings } from "../lib/settings";
 import type { AppFontId, TextSizeId, ThemeId } from "../lib/settings";
+import { ensureNotificationPermission } from "../lib/notifications";
 import { FramedAvatar } from "../components/FramedAvatar";
 
 const ITEM =
@@ -331,6 +333,23 @@ export default function Settings() {
             <Texts title="Atur ulang tampilan" desc="Kembali ke pengaturan awal" />
           </button>
         </Group>
+
+        {Capacitor.isNativePlatform() && (
+          <>
+            <SectionLabel>Notifikasi</SectionLabel>
+            <Group>
+              <SwitchItem
+                title="Notifikasi episode baru"
+                desc="Beri tahu saat anime di Library punya episode baru"
+                checked={settings.notifications}
+                onChange={(notifications) => {
+                  update({ notifications });
+                  if (notifications) void ensureNotificationPermission();
+                }}
+              />
+            </Group>
+          </>
+        )}
 
         <SectionLabel>Data</SectionLabel>
         <Group>

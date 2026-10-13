@@ -14,6 +14,8 @@ import Login from "./pages/Login";
 import SplashScreen from "./components/SplashScreen";
 import PageTransition from "./components/PageTransition";
 import { useAuth } from "./lib/auth";
+import { useSettings } from "./lib/settings";
+import { checkNewEpisodes } from "./lib/notifications";
 import { AuthenticateWithRedirectCallback } from "@clerk/react";
 
 function ProtectedLayout() {
@@ -40,6 +42,7 @@ function ProtectedLayout() {
 
 export default function App() {
   const { loading } = useAuth();
+  const { settings } = useSettings();
   const [splashDone, setSplashDone] = useState(false);
   const navigate = useNavigate();
 
@@ -54,6 +57,17 @@ export default function App() {
       void handle.then((h) => h.remove());
     };
   }, [navigate]);
+
+  // New-episode notifications for Library anime: on launch and every resume.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform() || !settings.notifications) return;
+    const run = () => void checkNewEpisodes().catch(() => {});
+    run();
+    const handle = CapacitorApp.addListener("resume", run);
+    return () => {
+      void handle.then((h) => h.remove());
+    };
+  }, [settings.notifications]);
 
   if (window.location.pathname === "/sso-callback") {
     return (

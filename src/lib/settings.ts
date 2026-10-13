@@ -9,6 +9,7 @@ export type AppSettings = {
   textSize: TextSizeId;
   appFont: AppFontId;
   reduceMotion: boolean;
+  notifications: boolean;
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -16,6 +17,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   textSize: "md",
   appFont: "default",
   reduceMotion: false,
+  notifications: true,
 };
 
 const KEY = "bakaanime_settings";
