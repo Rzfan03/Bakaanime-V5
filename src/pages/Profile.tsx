@@ -28,7 +28,7 @@ const detailPath = (slug: string) => `/detail/${encodeURIComponent(slug)}`;
 function RoleBadge({ role }: { role: string }) {
   if (role === "dev")
     return (
-      <span className="inline-flex items-center rounded-md bg-[#4F378B] px-1.5 py-0.5 text-[10px] font-extrabold tracking-widest text-[#EADDFF]">
+      <span className="inline-flex items-center rounded-md bg-m3-primary-container px-1.5 py-0.5 text-[10px] font-extrabold tracking-widest text-m3-on-primary-container">
         DEV
       </span>
     );
@@ -69,7 +69,7 @@ function AvatarButton({
       onClick={onClick}
       disabled={busy}
       aria-label="Ubah foto profil"
-      className="group relative shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#D0BCFF] disabled:opacity-80"
+      className="group relative shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-m3-primary disabled:opacity-80"
       style={{ width: 104, height: 104 }}
     >
       <FramedAvatar src={src} name={name} frameId={frameId} size={104} />
@@ -99,7 +99,7 @@ function FramePicker({
 }) {
   return (
     <div className="mb-4">
-      <p className="mb-2 text-[12px] text-[#CAC4D0]">Bingkai avatar</p>
+      <p className="mb-2 text-[12px] text-m3-on-surface-variant">Bingkai avatar</p>
       <div className="grid grid-cols-3 gap-2">
         {FRAMES.map((frame) => {
           const unlocked = canUseFrame(userRole, frame);
@@ -111,23 +111,23 @@ function FramePicker({
               disabled={!unlocked}
               className={`relative flex flex-col items-center gap-1.5 rounded-2xl py-3 text-[12px] outline-none transition-colors ${
                 active
-                  ? "bg-[#4F378B] text-[#EADDFF]"
+                  ? "bg-m3-primary-container text-m3-on-primary-container"
                   : unlocked
-                    ? "bg-[color:var(--m3-surface-high)] text-[#CAC4D0] hover:bg-[#37343E]"
-                    : "bg-[color:var(--m3-surface-high)] text-[#49454F] opacity-50"
+                    ? "bg-[color:var(--m3-surface-high)] text-m3-on-surface-variant hover:bg-m3-surface-hover"
+                    : "bg-[color:var(--m3-surface-high)] text-m3-outline-variant opacity-50"
               }`}
             >
               <div className="relative">
                 <FramedAvatar src={avatarSrc} name={userName} frameId={frame.id} size={48} />
                 {!unlocked && (
                   <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
-                    <Lock size={14} className="text-[#938F99]" />
+                    <Lock size={14} className="text-m3-outline" />
                   </div>
                 )}
               </div>
               <span className="leading-none">{frame.label}</span>
               {!unlocked && (
-                <span className="text-[10px] text-[#938F99]">
+                <span className="text-[10px] text-m3-outline">
                   {frame.minRole === "dev" ? "dev" : "admin"}
                 </span>
               )}
@@ -153,21 +153,21 @@ function FontPicker({
 
   return (
     <div className="mb-4">
-      <p className="mb-2 text-[12px] text-[#CAC4D0]">Font username</p>
+      <p className="mb-2 text-[12px] text-m3-on-surface-variant">Font username</p>
       <div className="relative">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="flex h-12 w-full items-center justify-between rounded-xl bg-[color:var(--m3-surface-high)] px-4 text-left outline-none ring-1 ring-inset ring-[#49454F] transition-colors hover:bg-[#37343E] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+          className="flex h-12 w-full items-center justify-between rounded-xl bg-[color:var(--m3-surface-high)] px-4 text-left outline-none ring-1 ring-inset ring-m3-outline-variant transition-colors hover:bg-m3-surface-hover focus-visible:ring-2 focus-visible:ring-m3-primary"
         >
-          <span className="truncate text-[15px] text-[#E6E0E9]" style={selected.style}>
+          <span className="truncate text-[15px] text-m3-on-surface" style={selected.style}>
             {userName || "Username"}
           </span>
           <ChevronDown
             size={20}
-            className={`shrink-0 text-[#CAC4D0] transition-transform ${open ? "rotate-180" : ""}`}
+            className={`shrink-0 text-m3-on-surface-variant transition-transform ${open ? "rotate-180" : ""}`}
           />
         </button>
 
@@ -176,7 +176,7 @@ function FontPicker({
             <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
             <ul
               role="listbox"
-              className="absolute left-0 right-0 z-20 mt-1 max-h-64 overflow-auto rounded-xl bg-[color:var(--m3-surface-high)] py-1 shadow-xl ring-1 ring-[#49454F]"
+              className="absolute left-0 right-0 z-20 mt-1 max-h-64 overflow-auto rounded-xl bg-[color:var(--m3-surface-high)] py-1 shadow-xl ring-1 ring-m3-outline-variant"
             >
               {FONT_OPTIONS.map((opt) => {
                 const active = current === opt.id;
@@ -191,15 +191,15 @@ function FontPicker({
                         setOpen(false);
                       }}
                       className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-left outline-none transition-colors ${
-                        active ? "bg-[#4F378B]/40" : "hover:bg-[#37343E]"
+                        active ? "bg-m3-primary-container/40" : "hover:bg-m3-surface-hover"
                       }`}
                     >
-                      <span className="truncate text-[15px] text-[#E6E0E9]" style={opt.style}>
+                      <span className="truncate text-[15px] text-m3-on-surface" style={opt.style}>
                         {userName || "Username"}
                       </span>
                       <span className="flex shrink-0 items-center gap-2">
-                        <span className="text-[12px] text-[#938F99]">{opt.label}</span>
-                        {active && <Check size={16} className="text-[#D0BCFF]" />}
+                        <span className="text-[12px] text-m3-outline">{opt.label}</span>
+                        {active && <Check size={16} className="text-m3-primary" />}
                       </span>
                     </button>
                   </li>
@@ -288,10 +288,10 @@ function EditSheet({
         }`}
         style={{ maxHeight: "92dvh" }}
       >
-        <div className="mx-auto mt-3 mb-4 h-1 w-8 rounded-full bg-[#938F99]" />
+        <div className="mx-auto mt-3 mb-4 h-1 w-8 rounded-full bg-m3-outline" />
 
         <div className="px-5">
-          <h2 className="mb-4 text-[20px] font-bold text-[#E6E0E9]">Edit profil</h2>
+          <h2 className="mb-4 text-[20px] font-bold text-m3-on-surface">Edit profil</h2>
 
           <div className="mb-4 flex items-center gap-3">
             <FramedAvatar
@@ -301,7 +301,7 @@ function EditSheet({
               size={64}
             />
             <p
-              className="min-w-0 truncate text-[17px] font-bold text-[#E6E0E9]"
+              className="min-w-0 truncate text-[17px] font-bold text-m3-on-surface"
               style={fontStyle(fontId)}
             >
               {name || "Username"}
@@ -312,7 +312,7 @@ function EditSheet({
             <button
               onClick={onPickAvatar}
               disabled={busyAvatar}
-              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[color:var(--m3-surface-high)] text-[13px] font-semibold text-[#D0BCFF] outline-none transition-colors hover:bg-[#37343E] focus-visible:ring-2 focus-visible:ring-[#D0BCFF] disabled:opacity-60"
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[color:var(--m3-surface-high)] text-[13px] font-semibold text-m3-primary outline-none transition-colors hover:bg-m3-surface-hover focus-visible:ring-2 focus-visible:ring-m3-primary disabled:opacity-60"
             >
               {busyAvatar ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
               Foto profil
@@ -320,13 +320,13 @@ function EditSheet({
             <button
               onClick={onPickBanner}
               disabled={busyBanner}
-              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[color:var(--m3-surface-high)] text-[13px] font-semibold text-[#D0BCFF] outline-none transition-colors hover:bg-[#37343E] focus-visible:ring-2 focus-visible:ring-[#D0BCFF] disabled:opacity-60"
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[color:var(--m3-surface-high)] text-[13px] font-semibold text-m3-primary outline-none transition-colors hover:bg-m3-surface-hover focus-visible:ring-2 focus-visible:ring-m3-primary disabled:opacity-60"
             >
               {busyBanner ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
               Banner
             </button>
           </div>
-          <p className="mb-4 text-[12px] text-[#938F99]">
+          <p className="mb-4 text-[12px] text-m3-outline">
             GIF avatar dan banner didukung (maks. 15 MB).
           </p>
 
@@ -346,35 +346,35 @@ function EditSheet({
             />
           )}
 
-          <label className="mb-1 block text-[12px] text-[#CAC4D0]">Nama</label>
+          <label className="mb-1 block text-[12px] text-m3-on-surface-variant">Nama</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={40}
             placeholder="Nama kamu"
-            className="mb-3 w-full rounded-xl border border-[#49454F] bg-[color:var(--m3-surface-high)] px-3.5 py-3 text-[15px] text-[#E6E0E9] placeholder:text-[#49454F] outline-none focus:border-[#D0BCFF]"
+            className="mb-3 w-full rounded-xl border border-m3-outline-variant bg-[color:var(--m3-surface-high)] px-3.5 py-3 text-[15px] text-m3-on-surface placeholder:text-m3-outline-variant outline-none focus:border-m3-primary"
           />
 
-          <label className="mb-1 block text-[12px] text-[#CAC4D0]">Bio</label>
+          <label className="mb-1 block text-[12px] text-m3-on-surface-variant">Bio</label>
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             maxLength={160}
             rows={3}
             placeholder="Ceritakan sedikit tentang dirimu…"
-            className="mb-1 w-full resize-none rounded-xl border border-[#49454F] bg-[color:var(--m3-surface-high)] px-3.5 py-3 text-[15px] leading-relaxed text-[#E6E0E9] placeholder:text-[#49454F] outline-none focus:border-[#D0BCFF]"
+            className="mb-1 w-full resize-none rounded-xl border border-m3-outline-variant bg-[color:var(--m3-surface-high)] px-3.5 py-3 text-[15px] leading-relaxed text-m3-on-surface placeholder:text-m3-outline-variant outline-none focus:border-m3-primary"
           />
-          <p className="mb-4 text-right text-[11px] text-[#49454F]">{bio.length}/160</p>
+          <p className="mb-4 text-right text-[11px] text-m3-outline-variant">{bio.length}/160</p>
 
-          {error && <p className="mb-3 text-[13px] text-[#F2B8B8]">{error}</p>}
+          {error && <p className="mb-3 text-[13px] text-m3-error">{error}</p>}
 
           <button
             onClick={() => void handleSave()}
             disabled={saving || !name.trim()}
-            className="flex h-12 w-full items-center justify-center rounded-full bg-[#D0BCFF] text-[15px] font-bold text-[#381E72] outline-none transition-colors hover:bg-[#DCCBFF] focus-visible:ring-2 focus-visible:ring-[#EADDFF] disabled:opacity-60"
+            className="flex h-12 w-full items-center justify-center rounded-full bg-m3-primary text-[15px] font-bold text-m3-on-primary outline-none transition-colors hover:bg-m3-primary-hover focus-visible:ring-2 focus-visible:ring-m3-on-primary-container disabled:opacity-60"
           >
-            {saving ? <Loader2 size={20} className="animate-spin text-[#381E72]" /> : "Simpan"}
+            {saving ? <Loader2 size={20} className="animate-spin text-m3-on-primary" /> : "Simpan"}
           </button>
         </div>
       </div>
@@ -387,7 +387,7 @@ function FavCard({ item, onRemove }: { item: FavoriteItem; onRemove: (slug: stri
     <div className="group relative">
       <Link
         to={detailPath(item.slug)}
-        className="block outline-none focus-visible:rounded-2xl focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+        className="block outline-none focus-visible:rounded-2xl focus-visible:ring-2 focus-visible:ring-m3-primary"
       >
         <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-[color:var(--m3-surface-high)] shadow-lg">
           <Poster
@@ -396,7 +396,7 @@ function FavCard({ item, onRemove }: { item: FavoriteItem; onRemove: (slug: stri
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
           <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0D0B12]/90 to-transparent" />
-          <p className="absolute inset-x-0 bottom-0 line-clamp-2 px-2 pb-2 text-[11px] font-semibold leading-4 text-[#E6E0E9]">
+          <p className="absolute inset-x-0 bottom-0 line-clamp-2 px-2 pb-2 text-[11px] font-semibold leading-4 text-m3-on-surface">
             {item.title}
           </p>
         </div>
@@ -404,7 +404,7 @@ function FavCard({ item, onRemove }: { item: FavoriteItem; onRemove: (slug: stri
       <button
         onClick={() => onRemove(item.slug)}
         aria-label={`Hapus ${item.title} dari favorit`}
-        className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--m3-surface)]/80 text-[#D0BCFF] backdrop-blur-sm outline-none transition-colors hover:text-[#F2B8B8] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+        className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--m3-surface)]/80 text-m3-primary backdrop-blur-sm outline-none transition-colors hover:text-m3-error focus-visible:ring-2 focus-visible:ring-m3-primary"
       >
         <Heart size={15} className="fill-current" />
       </button>
@@ -427,13 +427,13 @@ function CommentRow({ c }: { c: UserComment }) {
   return (
     <Link
       to={detailPath(c.anime_slug)}
-      className="block border-b border-[#49454F]/60 px-4 py-4 outline-none transition-colors hover:bg-[#D0BCFF]/[0.05] focus-visible:bg-[#D0BCFF]/[0.05]"
+      className="block border-b border-m3-outline-variant/60 px-4 py-4 outline-none transition-colors hover:bg-m3-primary/[0.05] focus-visible:bg-m3-primary/[0.05]"
     >
-      <p className="line-clamp-1 text-[12px] font-semibold capitalize text-[#D0BCFF]">
+      <p className="line-clamp-1 text-[12px] font-semibold capitalize text-m3-primary">
         {c.anime_slug.replace(/-/g, " ")}
       </p>
-      <p className="mt-1 whitespace-pre-line break-words text-[14px] leading-snug text-[#E6E0E9]">{c.body}</p>
-      <p className="mt-1.5 text-[12px] text-[#938F99]">{timeAgo(c.created_at)}</p>
+      <p className="mt-1 whitespace-pre-line break-words text-[14px] leading-snug text-m3-on-surface">{c.body}</p>
+      <p className="mt-1.5 text-[12px] text-m3-outline">{timeAgo(c.created_at)}</p>
     </Link>
   );
 }
@@ -571,7 +571,7 @@ export default function Profile() {
 
   return (
     <div
-      className="relative min-h-screen bg-[color:var(--m3-surface)] text-[#E6E0E9]"
+      className="relative min-h-screen bg-[color:var(--m3-surface)] text-m3-on-surface"
       style={{ maxWidth: 480, margin: "0 auto" }}
     >
       <header
@@ -588,7 +588,7 @@ export default function Profile() {
         <button
           onClick={() => navigate(-1)}
           aria-label="Kembali"
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#D0BCFF] ${
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full outline-none transition-colors focus-visible:ring-2 focus-visible:ring-m3-primary ${
             !headerSolid && "bg-[color:var(--m3-surface)]/55 backdrop-blur-[8px]"
           }`}
         >
@@ -603,7 +603,7 @@ export default function Profile() {
           <p className="truncate text-[16px] font-semibold leading-tight">
             {profile.name}
           </p>
-          <p className="text-[12px] leading-tight text-[#CAC4D0]">
+          <p className="text-[12px] leading-tight text-m3-on-surface-variant">
             {commentCount} komentar
           </p>
         </div>
@@ -647,7 +647,7 @@ export default function Profile() {
           <div className="flex shrink-0 items-center gap-2 pb-1">
             <button
               onClick={() => setEditing(true)}
-              className="flex h-9 items-center rounded-full bg-[#4A4458] px-4 text-[13px] font-semibold text-[#E8DEF8] outline-none transition-colors hover:bg-[#55506A] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+              className="flex h-9 items-center rounded-full bg-m3-secondary-container px-4 text-[13px] font-semibold text-m3-on-secondary-container outline-none transition-colors hover:bg-m3-secondary-container-hover focus-visible:ring-2 focus-visible:ring-m3-primary"
             >
               Edit profil
             </button>
@@ -663,32 +663,32 @@ export default function Profile() {
             {user.verified && (
               <BadgeCheck
                 size={20}
-                className="shrink-0 text-[#D0BCFF]"
+                className="shrink-0 text-m3-primary"
                 aria-label="Terverifikasi"
               />
             )}
             <RoleBadge role={user.role} />
             {saved && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#4F378B]/50 px-2 py-0.5 text-[11px] font-medium text-[#EADDFF]">
+              <span className="inline-flex items-center gap-1 rounded-full bg-m3-primary-container/50 px-2 py-0.5 text-[11px] font-medium text-m3-on-primary-container">
                 <Check size={11} /> Tersimpan
               </span>
             )}
           </h1>
-          <p className="mt-0.5 text-[13px] text-[#938F99]">{user.email}</p>
+          <p className="mt-0.5 text-[13px] text-m3-outline">{user.email}</p>
         </div>
 
         {profile.bio ? (
-          <p className="mt-3 whitespace-pre-line text-[14px] leading-relaxed text-[#CAC4D0]">
+          <p className="mt-3 whitespace-pre-line text-[14px] leading-relaxed text-m3-on-surface-variant">
             {profile.bio}
           </p>
         ) : (
-          <p className="mt-3 text-[13px] text-[#49454F]">
+          <p className="mt-3 text-[13px] text-m3-outline-variant">
             Belum ada bio. Tap &quot;Edit profil&quot; untuk menambahkan.
           </p>
         )}
 
         {imageError && (
-          <p className="mt-2 text-[12px] text-[#F2B8B8]">{imageError}</p>
+          <p className="mt-2 text-[12px] text-m3-error">{imageError}</p>
         )}
 
         <div className="mt-4 grid grid-cols-2 gap-2.5">
@@ -700,17 +700,17 @@ export default function Profile() {
               key={label}
               className="rounded-2xl bg-[color:var(--m3-surface-container)] px-4 py-3"
             >
-              <p className="text-[20px] font-extrabold leading-none text-[#D0BCFF]">
+              <p className="text-[20px] font-extrabold leading-none text-m3-primary">
                 {value}
               </p>
-              <p className="mt-1 text-[12px] text-[#CAC4D0]">{label}</p>
+              <p className="mt-1 text-[12px] text-m3-on-surface-variant">{label}</p>
             </div>
           ))}
         </div>
       </div>
 
       <div
-        className="sticky z-10 mt-5 grid grid-cols-2 border-b border-[#49454F]/80 bg-[color:var(--m3-surface)]"
+        className="sticky z-10 mt-5 grid grid-cols-2 border-b border-m3-outline-variant/80 bg-[color:var(--m3-surface)]"
         style={{ top: "calc(56px + env(safe-area-inset-top, 0px))" }}
       >
         {(["Komentar", "Favorit"] as const).map((label, i) => (
@@ -718,7 +718,7 @@ export default function Profile() {
             key={label}
             onClick={() => setTab(i as 0 | 1)}
             className={`relative h-11 text-[14px] font-semibold outline-none transition-colors ${
-              tab === i ? "text-[#D0BCFF]" : "text-[#938F99]"
+              tab === i ? "text-m3-primary" : "text-m3-outline"
             }`}
           >
             {label}
@@ -728,18 +728,18 @@ export default function Profile() {
           className="absolute bottom-0 flex w-1/2 justify-center transition-transform duration-300 ease-[cubic-bezier(0.2,0,0,1)]"
           style={{ transform: `translateX(${tab * 100}%)` }}
         >
-          <div className="h-[3px] w-10 rounded-t-full bg-[#D0BCFF]" />
+          <div className="h-[3px] w-10 rounded-t-full bg-m3-primary" />
         </div>
       </div>
 
       {tab === 0 && (
         <div className="pb-6">
           {commentsLoading ? (
-            <p className="py-12 text-center text-[13px] text-[#938F99]">
+            <p className="py-12 text-center text-[13px] text-m3-outline">
               Memuat komentar...
             </p>
           ) : comments.length === 0 ? (
-            <p className="px-6 py-12 text-center text-[13px] leading-relaxed text-[#938F99]">
+            <p className="px-6 py-12 text-center text-[13px] leading-relaxed text-m3-outline">
               Belum ada komentar.
               <br />
               Tulis komentar pertamamu di halaman detail anime.
@@ -753,7 +753,7 @@ export default function Profile() {
       {tab === 1 && (
         <div className="px-4 pb-6 pt-4">
           {favorites.length === 0 ? (
-            <p className="px-4 py-12 text-center text-[13px] leading-relaxed text-[#938F99]">
+            <p className="px-4 py-12 text-center text-[13px] leading-relaxed text-m3-outline">
               Belum ada favorit.
               <br />
               Tekan tombol hati di halaman anime, lalu muncul di sini.
@@ -771,7 +771,7 @@ export default function Profile() {
               </div>
               <Link
                 to="/library"
-                className="mt-5 flex h-10 w-full items-center justify-center rounded-full border border-[#49454F] text-[13px] font-semibold text-[#D0BCFF] outline-none transition-colors hover:bg-[#D0BCFF]/[0.06] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+                className="mt-5 flex h-10 w-full items-center justify-center rounded-full border border-m3-outline-variant text-[13px] font-semibold text-m3-primary outline-none transition-colors hover:bg-m3-primary/[0.06] focus-visible:ring-2 focus-visible:ring-m3-primary"
               >
                 Buka Library
               </Link>

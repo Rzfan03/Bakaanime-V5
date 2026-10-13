@@ -46,10 +46,10 @@ const Navigation = () => {
               to={to}
               end={to === '/'}
               className={({ isActive }) =>
-                `flex h-12 items-center rounded-full px-3.5 outline-none transition-colors duration-300 focus-visible:ring-2 focus-visible:ring-[#EADDFF] ${
+                `flex h-12 items-center rounded-full px-3.5 outline-none transition-colors duration-300 focus-visible:ring-2 focus-visible:ring-m3-on-primary-container ${
                   isActive
-                    ? 'bg-[#D0BCFF] hover:bg-[#DCCBFF]'
-                    : 'bg-transparent hover:bg-[#D0BCFF]/[0.08]'
+                    ? 'bg-m3-primary hover:bg-m3-primary-hover'
+                    : 'bg-transparent hover:bg-m3-primary/[0.08]'
                 }`
               }
             >
@@ -60,17 +60,17 @@ const Navigation = () => {
                       src={avatar}
                       alt=""
                       className={`h-6 w-6 shrink-0 rounded-full object-cover ring-2 ${
-                        isActive ? 'ring-[#381E72]' : 'ring-[#D0BCFF]/50'
+                        isActive ? 'ring-m3-on-primary' : 'ring-m3-primary/50'
                       }`}
                     />
                   ) : (
                     <Icon
                       size={24}
-                      className={isActive ? 'text-[#381E72]' : 'text-[#CAC4D0]'}
+                      className={isActive ? 'text-m3-on-primary' : 'text-m3-on-surface-variant'}
                     />
                   )}
                   <span
-                    className={`overflow-hidden whitespace-nowrap text-sm font-semibold text-[#381E72] transition-all duration-300 ${
+                    className={`overflow-hidden whitespace-nowrap text-sm font-semibold text-m3-on-primary transition-all duration-300 ${
                       isActive ? 'max-w-24 pl-2 opacity-100' : 'max-w-0 pl-0 opacity-0'
                     }`}
                   >

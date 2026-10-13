@@ -9,10 +9,10 @@ import { FramedAvatar } from "./FramedAvatar";
 
 /* Static class strings so Tailwind JIT includes them. Touch feedback uses active:, not hover. */
 const FILLED_BUTTON =
-  "inline-flex h-10 items-center justify-center rounded-full bg-[#D0BCFF] px-6 text-[14px] font-medium text-[#381E72] outline-none transition-[filter] active:brightness-90 disabled:bg-[#E6E0E9]/[0.12] disabled:text-[#E6E0E9]/[0.38]";
+  "inline-flex h-10 items-center justify-center rounded-full bg-m3-primary px-6 text-[14px] font-medium text-m3-on-primary outline-none transition-[filter] active:brightness-90 disabled:bg-m3-on-surface/[0.12] disabled:text-m3-on-surface/[0.38]";
 
 const TEXT_BUTTON =
-  "inline-flex h-10 items-center justify-center rounded-full px-4 text-[14px] font-medium text-[#D0BCFF] outline-none transition-colors active:bg-[#D0BCFF]/[0.12]";
+  "inline-flex h-10 items-center justify-center rounded-full px-4 text-[14px] font-medium text-m3-primary outline-none transition-colors active:bg-m3-primary/[0.12]";
 
 function timeAgo(iso: string): string {
   const diff = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
@@ -40,7 +40,7 @@ function VerifiedBadge({ role }: { role: string }) {
 function RoleChip({ role }: { role: string }) {
   if (role === "dev")
     return (
-      <span className="inline-flex h-5 items-center rounded-md bg-[#4F378B] px-1.5 text-[11px] font-medium leading-none tracking-[0.5px] text-[#EADDFF]">
+      <span className="inline-flex h-5 items-center rounded-md bg-m3-primary-container px-1.5 text-[11px] font-medium leading-none tracking-[0.5px] text-m3-on-primary-container">
         DEV
       </span>
     );
@@ -54,9 +54,9 @@ function RoleChip({ role }: { role: string }) {
 }
 
 function cardTone(role: string): string {
-  if (role === "dev") return "bg-[#4F378B]/[0.22]";
+  if (role === "dev") return "bg-m3-primary-container/[0.22]";
   if (role === "admin") return "bg-[#004F50]/[0.35]";
-  return "bg-[#1D1B20]";
+  return "bg-m3-surface-low";
 }
 
 function CommentRow({ comment }: { comment: BackendComment }) {
@@ -77,7 +77,7 @@ function CommentRow({ comment }: { comment: BackendComment }) {
         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
           <div className="flex min-w-0 items-center gap-1.5">
             <span
-              className="truncate text-[14px] font-medium leading-5 text-[#E6E0E9]"
+              className="truncate text-[14px] font-medium leading-5 text-m3-on-surface"
               style={font}
             >
               {comment.author_name}
@@ -90,12 +90,12 @@ function CommentRow({ comment }: { comment: BackendComment }) {
             )}
           </div>
 
-          <time dateTime={comment.created_at} className="text-[12px] leading-5 text-[#938F99]">
+          <time dateTime={comment.created_at} className="text-[12px] leading-5 text-m3-outline">
             {timeAgo(comment.created_at)}
           </time>
         </div>
 
-        <p className="mt-1 whitespace-pre-line break-words text-[14px] leading-5 text-[#CAC4D0]">
+        <p className="mt-1 whitespace-pre-line break-words text-[14px] leading-5 text-m3-on-surface-variant">
           {comment.body}
         </p>
       </div>
@@ -104,9 +104,9 @@ function CommentRow({ comment }: { comment: BackendComment }) {
 }
 
 function CommentSkeleton() {
-  const bar = "animate-pulse rounded-full bg-[#2B2930] motion-reduce:animate-none";
+  const bar = "animate-pulse rounded-full bg-m3-surface-high motion-reduce:animate-none";
   return (
-    <div className="flex gap-3 rounded-2xl bg-[#1D1B20] p-4">
+    <div className="flex gap-3 rounded-2xl bg-m3-surface-low p-4">
       <div className={`h-10 w-10 shrink-0 ${bar}`} />
       <div className="flex-1 space-y-2.5 pt-1">
         <div className={`h-3.5 w-28 ${bar}`} />
@@ -185,11 +185,11 @@ export default function Comments({ animeSlug }: { animeSlug: string }) {
   return (
     <section className="pb-6" aria-labelledby="comments-title">
       <div className="flex items-center gap-3 px-4 pb-4 pt-6">
-        <h2 id="comments-title" className="text-[22px] font-normal leading-7 text-[#E6E0E9]">
+        <h2 id="comments-title" className="text-[22px] font-normal leading-7 text-m3-on-surface">
           Komentar
         </h2>
         {count > 0 && (
-          <span className="rounded-full bg-[#4A4458] px-2.5 py-0.5 text-[12px] font-medium text-[#E8DEF8]">
+          <span className="rounded-full bg-m3-secondary-container px-2.5 py-0.5 text-[12px] font-medium text-m3-on-secondary-container">
             {count}
           </span>
         )}
@@ -199,7 +199,7 @@ export default function Comments({ animeSlug }: { animeSlug: string }) {
         <div className="mx-4 mb-5 flex gap-3">
           <FramedAvatar name={user.name} src={user.avatar} frameId={user.frame} size={40} />
 
-          <div className="min-w-0 flex-1 rounded-3xl bg-[#211F26] px-4 pb-3 pt-3.5 ring-1 ring-inset ring-[#49454F] focus-within:ring-2 focus-within:ring-[#D0BCFF]">
+          <div className="min-w-0 flex-1 rounded-3xl bg-m3-surface-container px-4 pb-3 pt-3.5 ring-1 ring-inset ring-m3-outline-variant focus-within:ring-2 focus-within:ring-m3-primary">
             <textarea
               ref={textareaRef}
               value={text}
@@ -208,13 +208,13 @@ export default function Comments({ animeSlug }: { animeSlug: string }) {
               rows={1}
               placeholder="Tulis komentar..."
               aria-label="Tulis komentar"
-              className="block min-h-6 w-full resize-none overflow-hidden bg-transparent text-[16px] leading-6 text-[#E6E0E9] outline-none placeholder:text-[#938F99]"
+              className="block min-h-6 w-full resize-none overflow-hidden bg-transparent text-[16px] leading-6 text-m3-on-surface outline-none placeholder:text-m3-outline"
             />
 
             <div className="mt-2 flex items-center justify-between gap-3">
               <span
                 className={`text-[12px] ${
-                  text.length >= WARN_AT ? "text-[#F2B8B5]" : "text-[#938F99]"
+                  text.length >= WARN_AT ? "text-m3-error" : "text-m3-outline"
                 } ${text.length === 0 ? "opacity-0" : "opacity-100"}`}
               >
                 {text.length}/{MAX_LENGTH}
@@ -231,15 +231,15 @@ export default function Comments({ animeSlug }: { animeSlug: string }) {
             </div>
 
             {postErr && (
-              <p role="alert" className="mt-3 text-[13px] leading-5 text-[#F2B8B5]">
+              <p role="alert" className="mt-3 text-[13px] leading-5 text-m3-error">
                 {postErr}
               </p>
             )}
           </div>
         </div>
       ) : (
-        <div className="mx-4 mb-5 flex items-center justify-between gap-3 rounded-2xl bg-[#211F26] py-3 pl-4 pr-3">
-          <p className="text-[14px] leading-5 text-[#CAC4D0]">Masuk untuk ikut berkomentar.</p>
+        <div className="mx-4 mb-5 flex items-center justify-between gap-3 rounded-2xl bg-m3-surface-container py-3 pl-4 pr-3">
+          <p className="text-[14px] leading-5 text-m3-on-surface-variant">Masuk untuk ikut berkomentar.</p>
           <Link to="/login" className={FILLED_BUTTON}>
             Masuk
           </Link>
@@ -254,13 +254,13 @@ export default function Comments({ animeSlug }: { animeSlug: string }) {
         </div>
       ) : error ? (
         <div role="alert" className="mx-4 flex items-center justify-between gap-3 py-2">
-          <p className="text-[14px] leading-5 text-[#F2B8B5]">{error}</p>
+          <p className="text-[14px] leading-5 text-m3-error">{error}</p>
           <button type="button" onClick={load} className={TEXT_BUTTON}>
             Coba lagi
           </button>
         </div>
       ) : count === 0 ? (
-        <p className="px-4 py-8 text-center text-[14px] leading-5 text-[#938F99]">
+        <p className="px-4 py-8 text-center text-[14px] leading-5 text-m3-outline">
           Belum ada komentar. Jadilah yang pertama menulis.
         </p>
       ) : (

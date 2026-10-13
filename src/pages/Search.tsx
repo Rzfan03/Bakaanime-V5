@@ -12,7 +12,7 @@ function ResultCard({ item }: { item: AnimeItem }) {
   return (
     <Link
       to={detailPath(item)}
-      className="group flex items-center gap-4 p-3 outline-none transition-colors active:bg-[#D0BCFF]/[0.10] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D0BCFF]"
+      className="group flex items-center gap-4 p-3 outline-none transition-colors active:bg-m3-primary/[0.10] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-m3-primary"
     >
       <div className="relative aspect-[2/3] w-16 shrink-0 overflow-hidden rounded-xl bg-[color:var(--m3-surface-high)] shadow-md">
         <Poster
@@ -24,24 +24,24 @@ function ResultCard({ item }: { item: AnimeItem }) {
       </div>
 
       <div className="min-w-0 flex-1 py-0.5">
-        <p className="line-clamp-2 text-[15px] font-semibold leading-snug text-[#E6E0E9]">
+        <p className="line-clamp-2 text-[15px] font-semibold leading-snug text-m3-on-surface">
           {item.title}
         </p>
         <div className="mt-2 flex flex-wrap gap-1.5">
           {item.type && (
-            <span className="rounded-full bg-[color:var(--m3-surface-high)] px-2.5 py-0.5 text-[11px] font-medium text-[#CAC4D0]">
+            <span className="rounded-full bg-[color:var(--m3-surface-high)] px-2.5 py-0.5 text-[11px] font-medium text-m3-on-surface-variant">
               {item.type}
             </span>
           )}
           {item.episode && (
-            <span className="rounded-full bg-[#4F378B]/70 px-2.5 py-0.5 text-[11px] font-medium text-[#EADDFF]">
+            <span className="rounded-full bg-m3-primary-container/70 px-2.5 py-0.5 text-[11px] font-medium text-m3-on-primary-container">
               {item.episode}
             </span>
           )}
         </div>
       </div>
 
-      <div className="shrink-0 text-[#49454F] transition-colors group-hover:text-[#D0BCFF]">
+      <div className="shrink-0 text-m3-outline-variant transition-colors group-hover:text-m3-primary">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 18l6-6-6-6" />
         </svg>
@@ -140,7 +140,7 @@ export default function Search() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[color:var(--m3-surface)] text-[#E6E0E9]">
+    <div className="flex min-h-screen flex-col bg-[color:var(--m3-surface)] text-m3-on-surface">
 
       <header className="sticky top-0 z-40 bg-[color:var(--m3-surface)] pt-[env(safe-area-inset-top)]">
         <div className="flex h-16 items-center gap-2 px-2">
@@ -148,7 +148,7 @@ export default function Search() {
           <Link
             to="/"
             aria-label="Kembali"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#E6E0E9] outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-m3-on-surface outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary"
           >
             <ArrowLeft size={22} />
           </Link>
@@ -156,7 +156,7 @@ export default function Search() {
           <div className="relative flex flex-1 items-center">
             <SearchIcon
               size={18}
-              className="pointer-events-none absolute left-3.5 text-[#938F99]"
+              className="pointer-events-none absolute left-3.5 text-m3-outline"
             />
             <input
               ref={inputRef}
@@ -169,13 +169,13 @@ export default function Search() {
               spellCheck={false}
               enterKeyHint="search"
               aria-label="Cari anime"
-              className="h-11 w-full rounded-2xl bg-[color:var(--m3-surface-high)] pl-[38px] pr-10 text-[15px] text-[#E6E0E9] placeholder:text-[#938F99] outline-none transition-shadow focus:ring-2 focus:ring-[#D0BCFF] [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
+              className="h-11 w-full rounded-2xl bg-[color:var(--m3-surface-high)] pl-[38px] pr-10 text-[15px] text-m3-on-surface placeholder:text-m3-outline outline-none transition-shadow focus:ring-2 focus:ring-m3-primary [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
             />
             {inputValue && (
               <button
                 onClick={clearInput}
                 aria-label="Hapus"
-                className="absolute right-1 flex h-9 w-9 items-center justify-center rounded-xl text-[#938F99] outline-none transition-colors hover:text-[#E6E0E9] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+                className="absolute right-1 flex h-9 w-9 items-center justify-center rounded-xl text-m3-outline outline-none transition-colors hover:text-m3-on-surface focus-visible:ring-2 focus-visible:ring-m3-primary"
               >
                 <X size={16} />
               </button>
@@ -186,7 +186,7 @@ export default function Search() {
 
         {/* Thin progress bar while loading */}
         <div
-          className={`h-[2px] w-full bg-gradient-to-r from-[#4F378B] via-[#D0BCFF] to-[#4F378B] transition-opacity duration-300 ${
+          className={`h-[2px] w-full bg-gradient-to-r from-m3-primary-container via-m3-primary to-m3-primary-container transition-opacity duration-300 ${
             loading ? "opacity-100" : "opacity-0"
           }`}
           aria-hidden="true"
@@ -198,11 +198,11 @@ export default function Search() {
         {!query && !loading && (
           <div className="flex flex-col items-center gap-4 px-6 pt-16 text-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-[28px] bg-[color:var(--m3-surface-high)]">
-              <Telescope size={36} className="text-[#D0BCFF]" strokeWidth={1.5} />
+              <Telescope size={36} className="text-m3-primary" strokeWidth={1.5} />
             </div>
             <div>
-              <p className="text-[17px] font-semibold text-[#E6E0E9]">Temukan anime</p>
-              <p className="mt-1.5 max-w-[260px] text-[13px] leading-5 text-[#938F99]">
+              <p className="text-[17px] font-semibold text-m3-on-surface">Temukan anime</p>
+              <p className="mt-1.5 max-w-[260px] text-[13px] leading-5 text-m3-outline">
                 Ketik judul, genre, atau nama studio di kolom di atas.
               </p>
             </div>
@@ -212,7 +212,7 @@ export default function Search() {
                 <button
                   key={g}
                   onClick={() => setInputValue(g)}
-                  className="rounded-full border border-[#49454F] px-3.5 py-1.5 text-[13px] font-medium text-[#CAC4D0] outline-none transition-colors hover:border-[#D0BCFF]/60 hover:bg-[#D0BCFF]/[0.08] hover:text-[#EADDFF] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+                  className="rounded-full border border-m3-outline-variant px-3.5 py-1.5 text-[13px] font-medium text-m3-on-surface-variant outline-none transition-colors hover:border-m3-primary/60 hover:bg-m3-primary/[0.08] hover:text-m3-on-primary-container focus-visible:ring-2 focus-visible:ring-m3-primary"
                 >
                   {g}
                 </button>
@@ -236,19 +236,19 @@ export default function Search() {
 
         {!loading && error && (
           <div className="mx-4 mt-6 rounded-2xl bg-[color:var(--m3-surface-high)] px-4 py-5">
-            <p className="text-[13px] text-[#CAC4D0]">{error}</p>
+            <p className="text-[13px] text-m3-on-surface-variant">{error}</p>
           </div>
         )}
 
         {!loading && empty && (
           <div className="flex flex-col items-center gap-3 px-6 pt-16 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-[20px] bg-[color:var(--m3-surface-high)]">
-              <SearchIcon size={28} className="text-[#49454F]" strokeWidth={1.5} />
+              <SearchIcon size={28} className="text-m3-outline-variant" strokeWidth={1.5} />
             </div>
-            <p className="text-[15px] font-semibold text-[#E6E0E9]">Tidak ditemukan</p>
-            <p className="max-w-[240px] text-[13px] leading-5 text-[#938F99]">
+            <p className="text-[15px] font-semibold text-m3-on-surface">Tidak ditemukan</p>
+            <p className="max-w-[240px] text-[13px] leading-5 text-m3-outline">
               Tidak ada anime untuk{" "}
-              <span className="font-medium text-[#D0BCFF]">"{query}"</span>.
+              <span className="font-medium text-m3-primary">"{query}"</span>.
               Coba kata kunci lain.
             </p>
           </div>
@@ -256,7 +256,7 @@ export default function Search() {
 
         {!loading && results.length > 0 && (
           <section aria-label={`Hasil "${query}"`}>
-            <p className="px-4 pb-2 pt-3 text-[12px] font-medium uppercase tracking-wide text-[#938F99]">
+            <p className="px-4 pb-2 pt-3 text-[12px] font-medium uppercase tracking-wide text-m3-outline">
               {results.length} hasil
             </p>
 

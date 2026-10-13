@@ -12,12 +12,12 @@ import { FramedAvatar } from "../components/FramedAvatar";
 import { Dialog } from "../components/Dialog";
 
 const ITEM =
-  "flex w-full min-h-[72px] items-center gap-4 bg-[color:var(--m3-surface-container)] px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D0BCFF]";
+  "flex w-full min-h-[72px] items-center gap-4 bg-[color:var(--m3-surface-container)] px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-m3-primary";
 const ITEM_PRESS = "active:bg-[color:var(--m3-surface-high)]";
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <h2 className="px-4 pb-2 pt-6 text-[14px] font-medium leading-5 tracking-[0.1px] text-[#D0BCFF]">
+    <h2 className="px-4 pb-2 pt-6 text-[14px] font-medium leading-5 tracking-[0.1px] text-m3-primary">
       {children}
     </h2>
   );
@@ -44,13 +44,13 @@ function Texts({
     <span className="min-w-0 flex-1">
       <span
         className={`block text-[16px] leading-6 tracking-[0.5px] ${
-          danger ? "text-[#F2B8B5]" : "text-[#E6E0E9]"
+          danger ? "text-m3-error" : "text-m3-on-surface"
         }`}
       >
         {title}
       </span>
       {desc && (
-        <span className="block text-[14px] leading-5 tracking-[0.25px] text-[#CAC4D0]">{desc}</span>
+        <span className="block text-[14px] leading-5 tracking-[0.25px] text-m3-on-surface-variant">{desc}</span>
       )}
     </span>
   );
@@ -67,8 +67,8 @@ function ControlItem({
 }) {
   return (
     <div className="bg-[color:var(--m3-surface-container)] px-4 pb-4 pt-3.5">
-      <p className="text-[16px] leading-6 tracking-[0.5px] text-[#E6E0E9]">{title}</p>
-      {desc && <p className="text-[14px] leading-5 tracking-[0.25px] text-[#CAC4D0]">{desc}</p>}
+      <p className="text-[16px] leading-6 tracking-[0.5px] text-m3-on-surface">{title}</p>
+      {desc && <p className="text-[14px] leading-5 tracking-[0.25px] text-m3-on-surface-variant">{desc}</p>}
       <div className="mt-3">{children}</div>
     </div>
   );
@@ -89,7 +89,7 @@ function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="flex overflow-hidden rounded-full border border-[#938F99]"
+      className="flex overflow-hidden rounded-full border border-m3-outline"
     >
       {options.map((o, i) => {
         const active = o.id === value;
@@ -100,10 +100,10 @@ function Segmented<T extends string>({
             role="radio"
             aria-checked={active}
             onClick={() => onChange(o.id)}
-            className={`h-10 flex-1 text-[14px] font-medium leading-5 tracking-[0.1px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#EADDFF] ${
-              i > 0 ? "border-l border-[#938F99]" : ""
+            className={`h-10 flex-1 text-[14px] font-medium leading-5 tracking-[0.1px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-m3-on-primary-container ${
+              i > 0 ? "border-l border-m3-outline" : ""
             } ${
-              active ? "bg-[#D0BCFF] text-[#381E72]" : "text-[#E6E0E9] active:bg-[#E6E0E9]/[0.10]"
+              active ? "bg-m3-primary text-m3-on-primary" : "text-m3-on-surface active:bg-m3-on-surface/[0.10]"
             }`}
           >
             {o.label}
@@ -137,12 +137,12 @@ function SwitchItem({
       <span
         aria-hidden="true"
         className={`relative h-8 w-[52px] shrink-0 rounded-full transition-colors ${
-          checked ? "bg-[#D0BCFF]" : "border-2 border-[#938F99] bg-[#36343B]"
+          checked ? "bg-m3-primary" : "border-2 border-m3-outline bg-m3-surface-hover"
         }`}
       >
         <span
           className={`absolute top-1/2 -translate-y-1/2 rounded-full transition-all ${
-            checked ? "left-[24px] h-6 w-6 bg-[#381E72]" : "left-[6px] h-4 w-4 bg-[#938F99]"
+            checked ? "left-[24px] h-6 w-6 bg-m3-on-primary" : "left-[6px] h-4 w-4 bg-m3-outline"
           }`}
         />
       </span>
@@ -155,7 +155,7 @@ function Snackbar({ message }: { message: string }) {
     <div className="pointer-events-none fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+96px)] z-[70] mx-auto max-w-md">
       <div
         role="status"
-        className="flex min-h-12 items-center rounded bg-[#E6E0E9] px-4 py-3 text-[14px] leading-5 tracking-[0.25px] text-[#322F35] shadow-lg shadow-black/40"
+        className="flex min-h-12 items-center rounded bg-m3-inverse-surface px-4 py-3 text-[14px] leading-5 tracking-[0.25px] text-m3-inverse-on-surface shadow-lg shadow-black/40"
       >
         {message}
       </div>
@@ -164,6 +164,7 @@ function Snackbar({ message }: { message: string }) {
 }
 
 const THEMES: { id: ThemeId; label: string }[] = [
+  { id: "light", label: "Terang" },
   { id: "dark", label: "Gelap" },
   { id: "amoled", label: "AMOLED" },
 ];
@@ -216,17 +217,17 @@ export default function Settings() {
     setSnack("Riwayat tontonan dihapus");
   };
 
-  const icon = "shrink-0 text-[#CAC4D0]";
+  const icon = "shrink-0 text-m3-on-surface-variant";
 
   return (
-    <div className="min-h-screen bg-[color:var(--m3-surface)] text-[#E6E0E9]">
+    <div className="min-h-screen bg-[color:var(--m3-surface)] text-m3-on-surface">
       <header className="sticky top-0 z-40 bg-[color:var(--m3-surface)] pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-16 max-w-2xl items-center px-1">
           <button
             type="button"
             aria-label="Kembali"
             onClick={() => navigate(-1)}
-            className="flex h-12 w-12 items-center justify-center rounded-full text-[#E6E0E9] outline-none transition-colors active:bg-[#E6E0E9]/[0.10] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+            className="flex h-12 w-12 items-center justify-center rounded-full text-m3-on-surface outline-none transition-colors active:bg-m3-on-surface/[0.10] focus-visible:ring-2 focus-visible:ring-m3-primary"
           >
             <ChevronLeft size={24} />
           </button>
@@ -234,7 +235,7 @@ export default function Settings() {
       </header>
 
       <main className="mx-auto max-w-2xl px-4 pb-36">
-        <h1 className="px-4 pb-4 text-[28px] font-normal leading-9 text-[#E6E0E9]">Pengaturan</h1>
+        <h1 className="px-4 pb-4 text-[28px] font-normal leading-9 text-m3-on-surface">Pengaturan</h1>
 
         <Group>
           <Link to="/profile" className={`${ITEM} ${ITEM_PRESS} min-h-[88px]`}>
@@ -246,7 +247,7 @@ export default function Settings() {
 
         <SectionLabel>Tampilan</SectionLabel>
         <Group>
-          <ControlItem title="Tema" desc="AMOLED memakai hitam pekat dan hemat baterai di layar OLED">
+          <ControlItem title="Tema" desc="Terang atau gelap Material 3. AMOLED memakai hitam pekat dan hemat baterai di layar OLED">
             <Segmented
               label="Tema"
               value={settings.theme}
@@ -332,7 +333,7 @@ export default function Settings() {
         <div className="mt-6">
           <Group>
             <button type="button" onClick={() => setDialog("logout")} className={`${ITEM} ${ITEM_PRESS}`}>
-              <LogOut size={24} className="shrink-0 text-[#F2B8B5]" />
+              <LogOut size={24} className="shrink-0 text-m3-error" />
               <Texts title="Keluar" danger />
             </button>
           </Group>

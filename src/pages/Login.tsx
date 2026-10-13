@@ -8,7 +8,7 @@ import { useAuth } from "../lib/auth";
 import { startNativeSSO } from "../lib/clerk/sso";
 
 const row =
-  "flex h-14 w-full items-center bg-[color:var(--m3-surface-low)] text-[15px] font-medium text-[#E6E0E9] outline-none transition-colors hover:bg-[color:var(--m3-surface-high)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D0BCFF]";
+  "flex h-14 w-full items-center bg-[color:var(--m3-surface-low)] text-[15px] font-medium text-m3-on-surface outline-none transition-colors hover:bg-[color:var(--m3-surface-high)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-m3-primary";
 
 // Show the real Clerk message (temporary, to debug the APK without console access)
 function errText(e: unknown): string {
@@ -111,10 +111,10 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[color:var(--m3-surface)] text-[#E6E0E9]">
+    <div className="flex min-h-screen flex-col bg-[color:var(--m3-surface)] text-m3-on-surface">
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 pb-16">
         <h1 className="text-left text-[28px] font-bold leading-tight">Masuk</h1>
-        <p className="mt-2 text-left text-[14px] leading-6 text-[#938F99]">
+        <p className="mt-2 text-left text-[14px] leading-6 text-m3-outline">
           Masuk untuk menyinkronkan profil, favorit, dan komentar kamu.
         </p>
 
@@ -145,13 +145,13 @@ export default function Login() {
                 onChange={(e) => setKey(e.target.value)}
                 autoComplete="off"
                 placeholder="Masukkan key"
-                className="h-full flex-1 bg-transparent text-[15px] text-[#E6E0E9] outline-none placeholder:text-[#49454F]"
+                className="h-full flex-1 bg-transparent text-[15px] text-m3-on-surface outline-none placeholder:text-m3-outline-variant"
               />
               <button
                 type="submit"
                 disabled={!key.trim() || busyKey}
                 aria-label="Masuk"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#D0BCFF] text-[#381E72] outline-none transition-colors hover:bg-[#DCCBFF] focus-visible:ring-2 focus-visible:ring-[#EADDFF] disabled:opacity-40"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-m3-primary text-m3-on-primary outline-none transition-colors hover:bg-m3-primary-hover focus-visible:ring-2 focus-visible:ring-m3-on-primary-container disabled:opacity-40"
               >
                 {busyKey ? (
                   <Loader2 size={17} className="animate-spin motion-reduce:animate-none" />
@@ -167,14 +167,14 @@ export default function Login() {
           )}
         </div>
 
-        {error && <p className="mt-3 text-left text-[13px] text-[#F2B8B8]">{error}</p>}
+        {error && <p className="mt-3 text-left text-[13px] text-m3-error">{error}</p>}
 
         {/* Reset button shown when stuck with a stale Clerk session */}
         {isSignedIn && !user && (
           <button
             type="button"
             onClick={logout}
-            className="mt-4 text-[12px] text-[#49454F] underline hover:text-[#938F99]"
+            className="mt-4 text-[12px] text-m3-outline-variant underline hover:text-m3-outline"
           >
             Reset session
           </button>

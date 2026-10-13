@@ -22,7 +22,7 @@ function PosterImage({ src, alt = "", className = "", loading, fallback = "icon"
         role={alt ? "img" : undefined}
         aria-label={alt || undefined}
         aria-hidden={alt ? undefined : true}
-        className={`flex items-center justify-center bg-[color:var(--m3-surface-high)] text-[#49454F] ${className}`}
+        className={`flex items-center justify-center bg-[color:var(--m3-surface-high)] text-m3-outline-variant ${className}`}
       >
         <ImageOff size={24} />
       </div>

@@ -38,7 +38,7 @@ function NavButton({
   children: React.ReactNode;
 }) {
   const base =
-    "flex h-11 flex-1 items-center justify-center gap-1 rounded-full text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#D0BCFF]";
+    "flex h-11 flex-1 items-center justify-center gap-1 rounded-full text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-m3-primary";
 
   if (!to) {
     return (
@@ -46,8 +46,8 @@ function NavButton({
         aria-disabled="true"
         className={`${base} ${
           primary
-            ? "bg-[#E6E0E9]/[0.12] text-[#E6E0E9]/40"
-            : "border border-[#E6E0E9]/[0.12] text-[#E6E0E9]/40"
+            ? "bg-m3-on-surface/[0.12] text-m3-on-surface/40"
+            : "border border-m3-on-surface/[0.12] text-m3-on-surface/40"
         }`}
       >
         {children}
@@ -61,8 +61,8 @@ function NavButton({
       replace
       className={`${base} ${
         primary
-          ? "bg-[#D0BCFF] text-[#381E72] hover:bg-[#DCCBFF]"
-          : "border border-[#938F99] text-[#D0BCFF] hover:bg-[#D0BCFF]/[0.08]"
+          ? "bg-m3-primary text-m3-on-primary hover:bg-m3-primary-hover"
+          : "border border-m3-outline text-m3-primary hover:bg-m3-primary/[0.08]"
       }`}
     >
       {children}
@@ -91,7 +91,7 @@ function RecCard({ item }: { item: AnimeItem }) {
       to={detailPath(item.slug)}
       className="group block w-28 shrink-0 snap-start outline-none"
     >
-      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-[color:var(--m3-surface-high)] group-focus-visible:ring-2 group-focus-visible:ring-[#D0BCFF]">
+      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-[color:var(--m3-surface-high)] group-focus-visible:ring-2 group-focus-visible:ring-m3-primary">
         <Poster
           src={item.poster}
           alt=""
@@ -99,12 +99,12 @@ function RecCard({ item }: { item: AnimeItem }) {
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
         />
         {item.episode && (
-          <span className="absolute bottom-2 left-2 rounded-full bg-[color:var(--m3-surface)]/80 px-2 py-0.5 text-xs font-medium text-[#EADDFF] backdrop-blur-sm">
+          <span className="absolute bottom-2 left-2 rounded-full bg-[color:var(--m3-surface)]/80 px-2 py-0.5 text-xs font-medium text-m3-on-primary-container backdrop-blur-sm">
             {item.episode}
           </span>
         )}
       </div>
-      <h3 className="mt-2 line-clamp-2 text-xs font-medium leading-4 text-[#E6E0E9]">
+      <h3 className="mt-2 line-clamp-2 text-xs font-medium leading-4 text-m3-on-surface">
         {item.title}
       </h3>
     </Link>
@@ -330,16 +330,16 @@ export default function Watch() {
     downloadRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const circleButton =
-    "flex h-10 w-10 items-center justify-center rounded-full border border-[#49454F] text-[#E6E0E9] outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] focus-visible:ring-2 focus-visible:ring-[#D0BCFF] disabled:opacity-40";
+    "flex h-10 w-10 items-center justify-center rounded-full border border-m3-outline-variant text-m3-on-surface outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary disabled:opacity-40";
 
   return (
-    <div className="min-h-screen bg-[color:var(--m3-surface)] pb-24 text-[#E6E0E9]">
+    <div className="min-h-screen bg-[color:var(--m3-surface)] pb-24 text-m3-on-surface">
       <header className="sticky top-0 z-40 bg-[color:var(--m3-surface)]/90 pt-[env(safe-area-inset-top)] backdrop-blur">
         <div className="mx-auto flex h-14 max-w-3xl items-center gap-1 px-2">
           <button
             onClick={() => navigate(-1)}
             aria-label="Kembali"
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary"
           >
             <ArrowLeft size={24} />
           </button>
@@ -366,7 +366,7 @@ export default function Watch() {
               />
             )}
             {!loading && !error && !stream && (
-              <div className="flex h-full items-center justify-center px-6 text-center text-sm text-[#CAC4D0]">
+              <div className="flex h-full items-center justify-center px-6 text-center text-sm text-m3-on-surface-variant">
                 Belum ada sumber video untuk episode ini.
               </div>
             )}
@@ -375,10 +375,10 @@ export default function Watch() {
 
         {!loading && error && (
           <div className="mx-4 mt-4 flex flex-col items-start gap-3 rounded-2xl bg-[color:var(--m3-surface-high)] p-4">
-            <p className="text-sm text-[#CAC4D0]">{error}</p>
+            <p className="text-sm text-m3-on-surface-variant">{error}</p>
             <button
               onClick={() => setReloadKey((k) => k + 1)}
-              className="flex h-10 items-center gap-2 rounded-full bg-[#4F378B] px-4 text-sm font-medium text-[#EADDFF] outline-none transition-colors hover:bg-[#5A42A0] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+              className="flex h-10 items-center gap-2 rounded-full bg-m3-primary-container px-4 text-sm font-medium text-m3-on-primary-container outline-none transition-colors hover:bg-m3-primary-container-hover focus-visible:ring-2 focus-visible:ring-m3-primary"
             >
               <RefreshCw size={18} />
               Coba lagi
@@ -398,10 +398,10 @@ export default function Watch() {
                     key={s.url}
                     onClick={() => setStreamIndex(i)}
                     aria-pressed={i === streamIndex}
-                    className={`flex h-8 shrink-0 items-center whitespace-nowrap rounded-full px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#D0BCFF] ${
+                    className={`flex h-8 shrink-0 items-center whitespace-nowrap rounded-full px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-m3-primary ${
                       i === streamIndex
-                        ? "bg-[#D0BCFF] text-[#381E72]"
-                        : "border border-[#49454F] text-[#CAC4D0] hover:bg-[#D0BCFF]/[0.08]"
+                        ? "bg-m3-primary text-m3-on-primary"
+                        : "border border-m3-outline-variant text-m3-on-surface-variant hover:bg-m3-primary/[0.08]"
                     }`}
                   >
                     {s.name}
@@ -414,7 +414,7 @@ export default function Watch() {
               <div className="min-w-0 flex-1">
                 <h2 className="text-[22px] font-medium leading-7">{title}</h2>
                 {metaLine && (
-                  <p className="mt-1 text-sm text-[#CAC4D0]">{metaLine}</p>
+                  <p className="mt-1 text-sm text-m3-on-surface-variant">{metaLine}</p>
                 )}
               </div>
               <div className="flex shrink-0 gap-2">
@@ -427,7 +427,7 @@ export default function Watch() {
                 >
                   <Heart
                     size={20}
-                    className={isFav ? "fill-[#D0BCFF] text-[#D0BCFF]" : ""}
+                    className={isFav ? "fill-m3-primary text-m3-primary" : ""}
                   />
                 </button>
                 {episode.downloads.length > 0 && (
@@ -448,11 +448,11 @@ export default function Watch() {
               <>
                 {detail?.synopsis && (
                   <section className="mt-4 px-4">
-                    <h2 className="text-base font-semibold leading-6 text-[#E6E0E9]">
+                    <h2 className="text-base font-semibold leading-6 text-m3-on-surface">
                       Sinopsis
                     </h2>
                     <p
-                      className={`mt-1.5 whitespace-pre-line text-sm leading-6 text-[#CAC4D0] ${
+                      className={`mt-1.5 whitespace-pre-line text-sm leading-6 text-m3-on-surface-variant ${
                         plotOpen ? "" : "line-clamp-4"
                       }`}
                     >
@@ -461,7 +461,7 @@ export default function Watch() {
                     <button
                       onClick={() => setPlotOpen((v) => !v)}
                       aria-expanded={plotOpen}
-                      className="mt-0.5 flex h-9 items-center gap-1 rounded-full pr-3 text-sm font-medium text-[#D0BCFF] outline-none focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+                      className="mt-0.5 flex h-9 items-center gap-1 rounded-full pr-3 text-sm font-medium text-m3-primary outline-none focus-visible:ring-2 focus-visible:ring-m3-primary"
                     >
                       {plotOpen ? "Ringkas" : "Selengkapnya"}
                       <ChevronDown
@@ -482,7 +482,7 @@ export default function Watch() {
                         animeSlug ? (
                           <Link
                             to={detailPath(animeSlug)}
-                            className="flex h-10 items-center gap-0.5 rounded-full pl-3 pr-1 text-sm font-medium text-[#D0BCFF] outline-none focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+                            className="flex h-10 items-center gap-0.5 rounded-full pl-3 pr-1 text-sm font-medium text-m3-primary outline-none focus-visible:ring-2 focus-visible:ring-m3-primary"
                           >
                             Detail anime
                             <ChevronRight size={18} />
@@ -500,12 +500,12 @@ export default function Watch() {
                               to={watchPath(e.slug)}
                               replace
                               aria-current={current ? "page" : undefined}
-                              className={`flex h-10 items-center justify-center gap-1 rounded-full text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#D0BCFF] ${
+                              className={`flex h-10 items-center justify-center gap-1 rounded-full text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-m3-primary ${
                                 current
-                                  ? "bg-[#D0BCFF] text-[#381E72]"
+                                  ? "bg-m3-primary text-m3-on-primary"
                                   : seen
-                                    ? "bg-[color:var(--m3-surface-high)] text-[#938F99] hover:bg-[#35323B]"
-                                    : "border border-[#49454F] text-[#EADDFF] hover:bg-[#D0BCFF]/[0.08]"
+                                    ? "bg-[color:var(--m3-surface-high)] text-m3-outline hover:bg-m3-surface-hover"
+                                    : "border border-m3-outline-variant text-m3-on-primary-container hover:bg-m3-primary/[0.08]"
                               }`}
                             >
                               {seen && !current && <Check size={14} />}
@@ -519,7 +519,7 @@ export default function Watch() {
                       <button
                         onClick={() => setShowAll((v) => !v)}
                         aria-expanded={showAll}
-                        className="mx-4 mt-2 flex h-10 items-center gap-1 rounded-full pr-3 text-sm font-medium text-[#D0BCFF] outline-none focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+                        className="mx-4 mt-2 flex h-10 items-center gap-1 rounded-full pr-3 text-sm font-medium text-m3-primary outline-none focus-visible:ring-2 focus-visible:ring-m3-primary"
                       >
                         {showAll
                           ? "Ringkas"
@@ -556,7 +556,7 @@ export default function Watch() {
                 {detail.genres.map((g) => (
                   <span
                     key={g}
-                    className="flex h-8 shrink-0 items-center whitespace-nowrap rounded-full bg-[#4F378B] px-3 text-sm font-medium text-[#EADDFF]"
+                    className="flex h-8 shrink-0 items-center whitespace-nowrap rounded-full bg-m3-primary-container px-3 text-sm font-medium text-m3-on-primary-container"
                   >
                     {g}
                   </span>
@@ -574,7 +574,7 @@ export default function Watch() {
                       href={d.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex h-8 items-center gap-1.5 rounded-full border border-[#49454F] px-3 text-sm font-medium text-[#D0BCFF] outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+                      className="flex h-8 items-center gap-1.5 rounded-full border border-m3-outline-variant px-3 text-sm font-medium text-m3-primary outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary"
                     >
                       {d.host}
                       <ExternalLink size={14} />
@@ -591,7 +591,7 @@ export default function Watch() {
                   action={
                     <Link
                       to="/"
-                      className="flex h-10 items-center gap-0.5 rounded-full pl-3 pr-1 text-sm font-medium text-[#D0BCFF] outline-none focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+                      className="flex h-10 items-center gap-0.5 rounded-full pl-3 pr-1 text-sm font-medium text-m3-primary outline-none focus-visible:ring-2 focus-visible:ring-m3-primary"
                     >
                       Lihat semua
                       <ChevronRight size={18} />
@@ -612,7 +612,7 @@ export default function Watch() {
       {toast && (
         <div
           role="status"
-          className="fixed inset-x-4 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-50 mx-auto max-w-sm rounded-xl bg-[#E6E0E9] px-4 py-3 text-center text-sm font-medium text-[#322F35] shadow-lg"
+          className="fixed inset-x-4 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-50 mx-auto max-w-sm rounded-xl bg-m3-inverse-surface px-4 py-3 text-center text-sm font-medium text-m3-inverse-on-surface shadow-lg"
         >
           {toast}
         </div>

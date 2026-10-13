@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-export type ThemeId = "dark" | "amoled";
+export type ThemeId = "dark" | "amoled" | "light";
 export type TextSizeId = "sm" | "md" | "lg" | "xl";
 export type AppFontId = "default" | "pixel";
 
@@ -23,7 +23,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
 const KEY = "bakaanime_settings";
 
 const ZOOM: Record<TextSizeId, number> = { sm: 0.9, md: 1, lg: 1.1, xl: 1.2 };
-const THEME_COLOR: Record<ThemeId, string> = { dark: "#141218", amoled: "#000000" };
+const THEME_COLOR: Record<ThemeId, string> = {
+  dark: "#141218",
+  amoled: "#000000",
+  light: "#FEF7FF",
+};
 
 function read(): AppSettings {
   try {

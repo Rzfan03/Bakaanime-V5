@@ -37,7 +37,7 @@ function ActionItem({
   active?: boolean;
   onClick?: () => void;
 }) {
-  const color = active ? "text-[#D0BCFF]" : "text-[#CAC4D0]";
+  const color = active ? "text-m3-primary" : "text-m3-on-surface-variant";
   const content = (
     <>
       {icon}
@@ -57,7 +57,7 @@ function ActionItem({
     <button
       onClick={onClick}
       aria-pressed={active}
-      className={`flex h-16 flex-col items-center justify-center gap-1 rounded-2xl outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] focus-visible:ring-2 focus-visible:ring-[#D0BCFF] ${color}`}
+      className={`flex h-16 flex-col items-center justify-center gap-1 rounded-2xl outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary ${color}`}
     >
       {content}
     </button>
@@ -69,23 +69,23 @@ function EpisodeItem({ episode, watched }: { episode: Episode; watched: boolean 
     <li>
       <Link
         to={watchPath(episode.slug)}
-        className="flex items-center gap-3 rounded-2xl px-3 py-2 outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+        className="flex items-center gap-3 rounded-2xl px-3 py-2 outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary"
       >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color:var(--m3-surface-high)] text-sm font-medium text-[#EADDFF]">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color:var(--m3-surface-high)] text-sm font-medium text-m3-on-primary-container">
           {episode.number || "•"}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-medium leading-5 text-[#E6E0E9]">
+          <span className="block text-sm font-medium leading-5 text-m3-on-surface">
             {episode.number ? `Episode ${episode.number}` : episode.title}
           </span>
           {episode.date && (
-            <span className="block text-xs text-[#CAC4D0]">{episode.date}</span>
+            <span className="block text-xs text-m3-on-surface-variant">{episode.date}</span>
           )}
         </span>
         {watched ? (
-          <Check size={20} className="shrink-0 text-[#CAC4D0]" />
+          <Check size={20} className="shrink-0 text-m3-on-surface-variant" />
         ) : (
-          <Play size={20} className="shrink-0 text-[#D0BCFF]" />
+          <Play size={20} className="shrink-0 text-m3-primary" />
         )}
       </Link>
     </li>
@@ -236,7 +236,7 @@ export default function Detail() {
   const firstEpisode = episodes[0];
 
   return (
-    <div className="min-h-screen bg-[color:var(--m3-surface)] pb-24 text-[#E6E0E9]">
+    <div className="min-h-screen bg-[color:var(--m3-surface)] pb-24 text-m3-on-surface">
       <header
         className={`fixed inset-x-0 top-0 z-40 pt-[env(safe-area-inset-top)] transition-colors motion-reduce:transition-none ${
           scrolled ? "bg-[color:var(--m3-surface)]/90 backdrop-blur" : "bg-transparent"
@@ -246,7 +246,7 @@ export default function Detail() {
           <button
             onClick={() => navigate(-1)}
             aria-label="Kembali"
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary"
           >
             <ArrowLeft size={24} />
           </button>
@@ -261,7 +261,7 @@ export default function Detail() {
             onClick={share}
             aria-label="Bagikan"
             disabled={!detail}
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] focus-visible:ring-2 focus-visible:ring-[#D0BCFF] disabled:opacity-40"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary disabled:opacity-40"
           >
             <Share2 size={22} />
           </button>
@@ -286,10 +286,10 @@ export default function Detail() {
 
           {!loading && error && (
             <div className="mx-4 mt-4 flex flex-col items-start gap-3 rounded-2xl bg-[color:var(--m3-surface-high)] p-4">
-              <p className="text-sm text-[#CAC4D0]">{error}</p>
+              <p className="text-sm text-m3-on-surface-variant">{error}</p>
               <button
                 onClick={() => setReloadKey((k) => k + 1)}
-                className="flex h-10 items-center gap-2 rounded-full bg-[#4F378B] px-4 text-sm font-medium text-[#EADDFF] outline-none transition-colors hover:bg-[#5A42A0] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+                className="flex h-10 items-center gap-2 rounded-full bg-m3-primary-container px-4 text-sm font-medium text-m3-on-primary-container outline-none transition-colors hover:bg-m3-primary-container-hover focus-visible:ring-2 focus-visible:ring-m3-primary"
               >
                 <RefreshCw size={18} />
                 Coba lagi
@@ -313,7 +313,7 @@ export default function Detail() {
                     {detail.title}
                   </h2>
 
-                  <div className="mt-2 space-y-1 text-sm text-[#CAC4D0]">
+                  <div className="mt-2 space-y-1 text-sm text-m3-on-surface-variant">
                     {detail.studio && (
                       <p className="flex items-start gap-1.5">
                         <Building2 size={16} className="mt-0.5 shrink-0" />
@@ -332,7 +332,7 @@ export default function Detail() {
 
               <section className="mt-5 grid grid-cols-4 gap-1 px-2">
                 <ActionItem
-                  icon={<Heart size={24} className={isFav ? "fill-[#D0BCFF]" : ""} />}
+                  icon={<Heart size={24} className={isFav ? "fill-m3-primary" : ""} />}
                   label={isFav ? "Favorit" : "Favoritkan"}
                   active={isFav}
                   onClick={() => void toggleFav()}
@@ -360,7 +360,7 @@ export default function Detail() {
               {firstEpisode ? (
                 <Link
                   to={watchPath(firstEpisode.slug)}
-                  className="mx-4 mt-4 flex h-12 items-center justify-center gap-2 rounded-full bg-[#D0BCFF] text-base font-medium text-[#381E72] outline-none transition-colors hover:bg-[#DCCBFF] focus-visible:ring-2 focus-visible:ring-[#EADDFF]"
+                  className="mx-4 mt-4 flex h-12 items-center justify-center gap-2 rounded-full bg-m3-primary text-base font-medium text-m3-on-primary outline-none transition-colors hover:bg-m3-primary-hover focus-visible:ring-2 focus-visible:ring-m3-on-primary-container"
                 >
                   <Play size={20} className="fill-current" />
                   Mulai Nonton
@@ -368,7 +368,7 @@ export default function Detail() {
               ) : (
                 <span
                   aria-disabled="true"
-                  className="mx-4 mt-4 flex h-12 items-center justify-center rounded-full bg-[#E6E0E9]/[0.12] text-base font-medium text-[#E6E0E9]/40"
+                  className="mx-4 mt-4 flex h-12 items-center justify-center rounded-full bg-m3-on-surface/[0.12] text-base font-medium text-m3-on-surface/40"
                 >
                   Belum ada episode
                 </span>
@@ -377,7 +377,7 @@ export default function Detail() {
               {detail.synopsis && (
                 <section className="mt-4 px-4">
                   <p
-                    className={`whitespace-pre-line text-sm leading-6 text-[#E6E0E9] ${
+                    className={`whitespace-pre-line text-sm leading-6 text-m3-on-surface ${
                       expanded ? "" : "line-clamp-3"
                     }`}
                   >
@@ -386,7 +386,7 @@ export default function Detail() {
                   <button
                     onClick={() => setExpanded((v) => !v)}
                     aria-expanded={expanded}
-                    className="mt-1 flex h-10 items-center gap-1 rounded-full pr-3 text-sm font-medium text-[#D0BCFF] outline-none focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+                    className="mt-1 flex h-10 items-center gap-1 rounded-full pr-3 text-sm font-medium text-m3-primary outline-none focus-visible:ring-2 focus-visible:ring-m3-primary"
                   >
                     {expanded ? "Ringkas" : "Selengkapnya"}
                     <ChevronDown
@@ -407,7 +407,7 @@ export default function Detail() {
                   {detail.genres.map((g) => (
                     <span
                       key={g}
-                      className="flex h-8 shrink-0 items-center whitespace-nowrap rounded-full bg-[#4F378B] px-3 text-sm font-medium text-[#EADDFF]"
+                      className="flex h-8 shrink-0 items-center whitespace-nowrap rounded-full bg-m3-primary-container px-3 text-sm font-medium text-m3-on-primary-container"
                     >
                       {g}
                     </span>
@@ -415,14 +415,14 @@ export default function Detail() {
                 </section>
               )}
 
-              <section className="mt-8 border-t border-[#49454F]/60 pt-5">
+              <section className="mt-8 border-t border-m3-outline-variant/60 pt-5">
                 <div className="flex items-baseline justify-between px-4 pb-2">
                   <h2 className="text-[22px] font-medium leading-7">Episode</h2>
-                  <span className="text-sm text-[#CAC4D0]">{episodes.length} episode</span>
+                  <span className="text-sm text-m3-on-surface-variant">{episodes.length} episode</span>
                 </div>
 
                 {episodes.length === 0 ? (
-                  <p className="px-4 py-10 text-center text-sm text-[#CAC4D0]">
+                  <p className="px-4 py-10 text-center text-sm text-m3-on-surface-variant">
                     Belum ada episode untuk anime ini.
                   </p>
                 ) : (
@@ -441,7 +441,7 @@ export default function Detail() {
                       <button
                         onClick={() => setEpisodesExpanded((v) => !v)}
                         aria-expanded={episodesExpanded}
-                        className="mx-4 mt-2 flex h-10 items-center gap-1 rounded-full pr-3 text-sm font-medium text-[#D0BCFF] outline-none focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+                        className="mx-4 mt-2 flex h-10 items-center gap-1 rounded-full pr-3 text-sm font-medium text-m3-primary outline-none focus-visible:ring-2 focus-visible:ring-m3-primary"
                       >
                         {episodesExpanded
                           ? "Ringkas"
@@ -467,7 +467,7 @@ export default function Detail() {
       {toast && (
         <div
           role="status"
-          className="fixed inset-x-4 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-50 mx-auto max-w-sm rounded-xl bg-[#E6E0E9] px-4 py-3 text-center text-sm font-medium text-[#322F35] shadow-lg"
+          className="fixed inset-x-4 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-50 mx-auto max-w-sm rounded-xl bg-m3-inverse-surface px-4 py-3 text-center text-sm font-medium text-m3-inverse-on-surface shadow-lg"
         >
           {toast}
         </div>

@@ -117,7 +117,7 @@ function AvatarPlaceholder({ name, size }: { name: string; size: number }) {
       .join("") || "?";
   return (
     <div
-      className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#4F378B] to-[#7965AF] font-bold text-[#EADDFF]"
+      className="flex h-full w-full items-center justify-center bg-gradient-to-br from-m3-primary-container to-[#7965AF] font-bold text-m3-on-primary-container"
       style={{ fontSize: Math.round(size * 0.36) }}
     >
       {initials}

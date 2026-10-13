@@ -71,8 +71,8 @@ function BannerCarousel({
         pagination={{ clickable: true }}
         style={
           {
-            "--swiper-pagination-color": "#D0BCFF",
-            "--swiper-pagination-bullet-inactive-color": "#E6E0E9",
+            "--swiper-pagination-color": "var(--m3-primary)",
+            "--swiper-pagination-bullet-inactive-color": "var(--m3-on-surface)",
             "--swiper-pagination-bullet-inactive-opacity": "0.5",
             "--swiper-pagination-bullet-size": "8px",
             "--swiper-pagination-bottom": "14px",
@@ -84,7 +84,7 @@ function BannerCarousel({
           <SwiperSlide key={anime.seriesSlug}>
             <Link
               to={pathFor(anime)}
-              className="group relative block aspect-[4/5] overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D0BCFF] sm:aspect-[16/9] lg:aspect-[21/9]"
+              className="group relative block aspect-[4/5] overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-m3-primary sm:aspect-[16/9] lg:aspect-[21/9]"
             >
               <Poster
                 src={anime.poster}
@@ -96,17 +96,17 @@ function BannerCarousel({
               <div className="absolute inset-x-0 bottom-0 p-5 pb-8">
                 <div className="flex flex-wrap gap-2">
                   {anime.type && (
-                    <span className="rounded-full bg-[color:var(--m3-surface)]/60 px-3 py-1 text-xs font-medium text-[#EADDFF] backdrop-blur-sm">
+                    <span className="rounded-full bg-[color:var(--m3-surface)]/60 px-3 py-1 text-xs font-medium text-m3-on-primary-container backdrop-blur-sm">
                       {anime.type}
                     </span>
                   )}
                   {anime.episode && (
-                    <span className="rounded-full bg-[#4F378B] px-3 py-1 text-xs font-medium text-[#EADDFF]">
+                    <span className="rounded-full bg-m3-primary-container px-3 py-1 text-xs font-medium text-m3-on-primary-container">
                       {anime.episode}
                     </span>
                   )}
                 </div>
-                <h3 className="mt-2 line-clamp-2 text-2xl font-medium leading-8 text-[#E6E0E9]">
+                <h3 className="mt-2 line-clamp-2 text-2xl font-medium leading-8 text-m3-on-surface">
                   {anime.title}
                 </h3>
               </div>
@@ -137,32 +137,32 @@ function PosterCard({
 }) {
   return (
     <Link to={to} className={`group block outline-none ${className}`}>
-      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-[color:var(--m3-surface-high)] group-focus-visible:ring-2 group-focus-visible:ring-[#D0BCFF]">
+      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-[color:var(--m3-surface-high)] group-focus-visible:ring-2 group-focus-visible:ring-m3-primary">
         <Poster
           src={poster}
           alt=""
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
         />
-        <span className="absolute inset-0 transition-colors group-hover:bg-[#D0BCFF]/[0.08] group-active:bg-[#D0BCFF]/[0.12]" />
+        <span className="absolute inset-0 transition-colors group-hover:bg-m3-primary/[0.08] group-active:bg-m3-primary/[0.12]" />
         {badge && (
-          <span className="absolute bottom-2 left-2 rounded-lg bg-[color:var(--m3-surface)]/80 px-2 py-0.5 text-xs font-medium text-[#EADDFF] backdrop-blur-sm">
+          <span className="absolute bottom-2 left-2 rounded-lg bg-[color:var(--m3-surface)]/80 px-2 py-0.5 text-xs font-medium text-m3-on-primary-container backdrop-blur-sm">
             {badge}
           </span>
         )}
         {typeof progress === "number" && progress > 0 && (
           <span className="absolute inset-x-0 bottom-0 h-1 bg-black/40">
             <span
-              className="block h-full bg-[#D0BCFF]"
+              className="block h-full bg-m3-primary"
               style={{ width: `${Math.round(Math.min(1, progress) * 100)}%` }}
             />
           </span>
         )}
       </div>
-      <h3 className="mt-2 line-clamp-2 text-sm font-medium leading-5 text-[#E6E0E9]">
+      <h3 className="mt-2 line-clamp-2 text-sm font-medium leading-5 text-m3-on-surface">
         {title}
       </h3>
-      {meta && <p className="mt-0.5 line-clamp-1 text-xs text-[#CAC4D0]">{meta}</p>}
+      {meta && <p className="mt-0.5 line-clamp-1 text-xs text-m3-on-surface-variant">{meta}</p>}
     </Link>
   );
 }
@@ -180,7 +180,7 @@ function SkeletonCard({ className = "" }: { className?: string }) {
 function SectionHeader({ title }: { title: string }) {
   return (
     <div className="flex items-center justify-between px-4 pb-2">
-      <h2 className="text-[22px] font-medium leading-7 text-[#E6E0E9]">{title}</h2>
+      <h2 className="text-[22px] font-medium leading-7 text-m3-on-surface">{title}</h2>
     </div>
   );
 }
@@ -198,10 +198,10 @@ function FilterChip({
     <button
       onClick={onClick}
       aria-pressed={selected}
-      className={`flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#D0BCFF] ${
+      className={`flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-m3-primary ${
         selected
-          ? "bg-[#4F378B] text-[#EADDFF]"
-          : "border border-[#49454F] text-[#CAC4D0] hover:bg-[#D0BCFF]/[0.08]"
+          ? "bg-m3-primary-container text-m3-on-primary-container"
+          : "border border-m3-outline-variant text-m3-on-surface-variant hover:bg-m3-primary/[0.08]"
       }`}
     >
       {selected && <Check size={16} />}
@@ -223,7 +223,7 @@ function IconLink({
     <Link
       to={to}
       aria-label={label}
-      className="flex h-12 w-12 items-center justify-center rounded-full text-[#E6E0E9] outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+      className="flex h-12 w-12 items-center justify-center rounded-full text-m3-on-surface outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary"
     >
       {children}
     </Link>
@@ -325,7 +325,7 @@ export default function Home() {
   const showContinue = page === 1 && !error && progress.length > 0;
 
   return (
-    <div className="min-h-screen bg-[color:var(--m3-surface)] pb-32 text-[#E6E0E9]">
+    <div className="min-h-screen bg-[color:var(--m3-surface)] pb-32 text-m3-on-surface">
       <header className="sticky top-0 z-40 bg-[color:var(--m3-surface)]/90 pt-[env(safe-area-inset-top)] backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between pl-4 pr-2">
           <h1 className="text-[22px] font-medium leading-7 tracking-tight">BakaAnime</h1>
@@ -347,10 +347,10 @@ export default function Home() {
       <main className="mx-auto max-w-6xl">
         {error && (
           <div className="mx-4 mt-4 flex items-center gap-3 rounded-2xl bg-[color:var(--m3-surface-high)] p-4">
-            <p className="flex-1 text-sm text-[#CAC4D0]">{error}</p>
+            <p className="flex-1 text-sm text-m3-on-surface-variant">{error}</p>
             <button
               onClick={() => setReloadKey((k) => k + 1)}
-              className="flex h-10 items-center gap-2 rounded-full bg-[#4F378B] px-4 text-sm font-medium text-[#EADDFF] outline-none transition-colors hover:bg-[#5A42A0] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+              className="flex h-10 items-center gap-2 rounded-full bg-m3-primary-container px-4 text-sm font-medium text-m3-on-primary-container outline-none transition-colors hover:bg-m3-primary-container-hover focus-visible:ring-2 focus-visible:ring-m3-primary"
             >
               <RefreshCw size={18} />
               Coba lagi
@@ -447,7 +447,7 @@ export default function Home() {
             </div>
 
             {!loading && items.length === 0 && (
-              <p className="px-4 py-12 text-center text-sm text-[#CAC4D0]">
+              <p className="px-4 py-12 text-center text-sm text-m3-on-surface-variant">
                 {activeType === "Semua"
                   ? "Tidak ada anime di halaman ini."
                   : `Tidak ada anime berjenis ${activeType} di halaman ini.`}
@@ -464,20 +464,20 @@ export default function Home() {
             <button
               disabled={loading || !pagination.hasPrev}
               onClick={() => goTo(pagination.currentPage - 1)}
-              className="flex h-10 items-center gap-1 rounded-full border border-[#938F99] pl-3 pr-4 text-sm font-medium text-[#D0BCFF] outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] focus-visible:ring-2 focus-visible:ring-[#D0BCFF] disabled:cursor-not-allowed disabled:border-[#E6E0E9]/[0.12] disabled:text-[#E6E0E9]/40 disabled:hover:bg-transparent"
+              className="flex h-10 items-center gap-1 rounded-full border border-m3-outline pl-3 pr-4 text-sm font-medium text-m3-primary outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary disabled:cursor-not-allowed disabled:border-m3-on-surface/[0.12] disabled:text-m3-on-surface/40 disabled:hover:bg-transparent"
             >
               <ChevronLeft size={18} />
               Sebelumnya
             </button>
 
-            <span className="min-w-20 text-center text-sm text-[#CAC4D0]">
+            <span className="min-w-20 text-center text-sm text-m3-on-surface-variant">
               Halaman {pagination.currentPage}
             </span>
 
             <button
               disabled={loading || !pagination.hasNext}
               onClick={() => goTo(pagination.currentPage + 1)}
-              className="flex h-10 items-center gap-1 rounded-full bg-[#D0BCFF] pl-4 pr-3 text-sm font-medium text-[#381E72] outline-none transition-colors hover:bg-[#DCCBFF] focus-visible:ring-2 focus-visible:ring-[#EADDFF] disabled:cursor-not-allowed disabled:bg-[#E6E0E9]/[0.12] disabled:text-[#E6E0E9]/40 disabled:hover:bg-[#E6E0E9]/[0.12]"
+              className="flex h-10 items-center gap-1 rounded-full bg-m3-primary pl-4 pr-3 text-sm font-medium text-m3-on-primary outline-none transition-colors hover:bg-m3-primary-hover focus-visible:ring-2 focus-visible:ring-m3-on-primary-container disabled:cursor-not-allowed disabled:bg-m3-on-surface/[0.12] disabled:text-m3-on-surface/40 disabled:hover:bg-m3-on-surface/[0.12]"
             >
               Berikutnya
               <ChevronRight size={18} />

@@ -12,10 +12,10 @@ export type MenuItem = {
 };
 
 const itemClass = (danger?: boolean) =>
-  `flex h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D0BCFF] ${
+  `flex h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-m3-primary ${
     danger
-      ? "text-[#F2B8B8] hover:bg-[#F2B8B8]/10"
-      : "text-[#E6E0E9] hover:bg-[#D0BCFF]/[0.08]"
+      ? "text-m3-error hover:bg-m3-error/10"
+      : "text-m3-on-surface hover:bg-m3-primary/[0.08]"
   }`;
 
 export default function OverflowMenu({
@@ -52,7 +52,7 @@ export default function OverflowMenu({
         aria-expanded={open}
         aria-label={label}
         onClick={() => setOpen((v) => !v)}
-        className="flex h-12 w-12 items-center justify-center rounded-full text-[#E6E0E9] outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+        className="flex h-12 w-12 items-center justify-center rounded-full text-m3-on-surface outline-none transition-colors hover:bg-m3-primary/[0.08] focus-visible:ring-2 focus-visible:ring-m3-primary"
       >
         <MoreVertical size={24} />
       </button>
