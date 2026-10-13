@@ -15,6 +15,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Versi naik otomatis tiap build: 1.0.0, 1.0.1, ... (patch = nomor run).
+      - name: Set version from build number
+        run: |
+          sed -i -E "s/versionCode [0-9]+/versionCode ${{ github.run_number }}/" android/app/build.gradle
+          sed -i -E "s/versionName \"[^\"]*\"/versionName \"1.0.${{ github.run_number }}\"/" android/app/build.gradle
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -75,8 +81,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           APK="$(ls android/app/build/outputs/apk/release/*.apk | head -1)"
-          NOTES="Commit ${GITHUB_SHA::7} · $(date -u +%Y-%m-%dT%H:%MZ)"
+          VER="1.0.${{ github.run_number }}"
+          NOTES="v$VER · Commit ${GITHUB_SHA::7} · $(date -u +%Y-%m-%dT%H:%MZ)"
           gh release view latest >/dev/null 2>&1 \
-            || gh release create latest --title "APK terbaru" --notes "$NOTES"
+            || gh release create latest --title "APK v$VER" --notes "$NOTES"
           gh release upload latest "$APK" --clobber
-          gh release edit latest --notes "$NOTES"
+          gh release edit latest --title "APK v$VER" --notes "$NOTES"
