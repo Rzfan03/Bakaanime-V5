@@ -17,6 +17,7 @@ import { StatusBar } from "@capacitor/status-bar";
 import { describeError, getDetail, getEpisode, getHome } from "../lib/api/anime";
 import { markWatched, readFavorites } from "../lib/storage";
 import type { FavoriteItem } from "../lib/storage";
+import { writeProgress } from "../lib/progress";
 import { backend } from "../lib/api/backend";
 import { addFavorite, removeFavorite } from "../lib/favorites";
 import type { AnimeDetail, AnimeItem, EpisodeDetail } from "../types/anime";
@@ -254,6 +255,23 @@ export default function Watch() {
     if (!animeSlug) return;
     setWatched(markWatched(animeSlug, slug));
   }, [animeSlug, slug]);
+
+  useEffect(() => {
+    if (!detail || !animeSlug) return;
+    const eps = detail.episodes ?? [];
+    const i = eps.findIndex((e) => e.slug === slug);
+    const watchedSet = new Set(watched);
+    writeProgress({
+      animeSlug,
+      title: detail.title,
+      poster: detail.poster,
+      episodeSlug: slug,
+      episodeNumber: eps[i]?.number ?? (i >= 0 ? i + 1 : 0),
+      watchedCount: eps.filter((e) => watchedSet.has(e.slug)).length,
+      total: eps.length,
+      updatedAt: Date.now(),
+    });
+  }, [detail, animeSlug, slug, watched]);
 
   useEffect(() => {
     if (!toast) return;

@@ -19,6 +19,8 @@ import { Browser } from "@capacitor/browser";
 import { getHome } from "../lib/api/anime";
 import { readLibrary } from "../lib/storage";
 import type { LibraryItem } from "../lib/storage";
+import { readProgress } from "../lib/progress";
+import type { ProgressItem } from "../lib/progress";
 import type { AnimeItem, AnimeListResult } from "../types/anime";
 import OverflowMenu from "../components/OverflowMenu";
 import { useAuth } from "../lib/auth";
@@ -122,6 +124,7 @@ function PosterCard({
   poster,
   badge,
   meta,
+  progress,
   className = "",
 }: {
   to: string;
@@ -129,6 +132,7 @@ function PosterCard({
   poster: string;
   badge?: string;
   meta?: string;
+  progress?: number;
   className?: string;
 }) {
   return (
@@ -144,6 +148,14 @@ function PosterCard({
         {badge && (
           <span className="absolute bottom-2 left-2 rounded-lg bg-[color:var(--m3-surface)]/80 px-2 py-0.5 text-xs font-medium text-[#EADDFF] backdrop-blur-sm">
             {badge}
+          </span>
+        )}
+        {typeof progress === "number" && progress > 0 && (
+          <span className="absolute inset-x-0 bottom-0 h-1 bg-black/40">
+            <span
+              className="block h-full bg-[#D0BCFF]"
+              style={{ width: `${Math.round(Math.min(1, progress) * 100)}%` }}
+            />
           </span>
         )}
       </div>
@@ -235,10 +247,12 @@ export default function Home() {
 
   const [typeFilter, setTypeFilter] = useState("Semua");
   const [library, setLibrary] = useState<LibraryItem[]>([]);
+  const [progress, setProgress] = useState<ProgressItem[]>([]);
   const [update, setUpdate] = useState<ReleaseInfo | null>(null);
 
   useEffect(() => {
     setLibrary(readLibrary());
+    setProgress(readProgress());
   }, []);
 
   // Prompt to update when the installed app is behind the latest release.
@@ -303,7 +317,12 @@ export default function Home() {
 
   const pagination = data?.pagination;
   const showBanner = page === 1 && !error;
+  const progressBySlug = useMemo(
+    () => new Map(progress.map((p) => [p.animeSlug, p])),
+    [progress]
+  );
   const showLibrary = page === 1 && !error && library.length > 0;
+  const showContinue = page === 1 && !error && progress.length > 0;
 
   return (
     <div className="min-h-screen bg-[color:var(--m3-surface)] pb-32 text-[#E6E0E9]">
@@ -369,19 +388,42 @@ export default function Home() {
           </section>
         )}
 
+        {showContinue && (
+          <section className="mt-6">
+            <SectionHeader title="Lanjut nonton" />
+            <div className={rowClass}>
+              {progress.slice(0, 10).map((p) => (
+                <PosterCard
+                  key={p.animeSlug}
+                  to={`/watch/${encodeURIComponent(p.episodeSlug)}`}
+                  title={p.title}
+                  poster={p.poster}
+                  badge={p.episodeNumber > 0 ? `Lanjut Ep ${p.episodeNumber}` : "Lanjut"}
+                  progress={p.total > 0 ? p.watchedCount / p.total : undefined}
+                  className="w-28 shrink-0 snap-start"
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
         {showLibrary && (
           <section className="mt-6">
             <SectionHeader title="Library kamu" />
             <div className={rowClass}>
-              {library.map((item) => (
-                <PosterCard
-                  key={item.slug}
-                  to={`/detail/${encodeURIComponent(item.slug)}`}
-                  title={item.title}
-                  poster={item.poster}
-                  className="w-28 shrink-0 snap-start"
-                />
-              ))}
+              {library.map((item) => {
+                const p = progressBySlug.get(item.slug);
+                return (
+                  <PosterCard
+                    key={item.slug}
+                    to={`/detail/${encodeURIComponent(item.slug)}`}
+                    title={item.title}
+                    poster={item.poster}
+                    progress={p && p.total > 0 ? p.watchedCount / p.total : undefined}
+                    className="w-28 shrink-0 snap-start"
+                  />
+                );
+              })}
             </div>
           </section>
         )}
