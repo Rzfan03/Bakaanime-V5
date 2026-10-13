@@ -45,14 +45,35 @@ export default guard(async (req: VercelRequest, res: VercelResponse) => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15000);
   try {
-    const upstream = await fetch(target, {
-      headers: {
-        "User-Agent": UA,
-        Referer: `https://${target.hostname}/`,
-        Accept: "image/avif,image/webp,image/*,*/*;q=0.8",
-      },
-      signal: controller.signal,
-    });
+    let url = target;
+    let upstream: Response | null = null;
+    // Follow redirects manually so every hop is re-checked against the allowlist
+    // (otherwise an allowed host could 30x-redirect to an internal address).
+    for (let hop = 0; hop < 4; hop++) {
+      const r = await fetch(url, {
+        redirect: "manual",
+        headers: {
+          "User-Agent": UA,
+          Referer: `https://${url.hostname}/`,
+          Accept: "image/avif,image/webp,image/*,*/*;q=0.8",
+        },
+        signal: controller.signal,
+      });
+      if (r.status >= 300 && r.status < 400) {
+        const location = r.headers.get("location");
+        if (!location) {
+          upstream = r;
+          break;
+        }
+        const next = new URL(location, url);
+        if (!isAllowed(next)) return json(res, 502, { error: "redirect_not_allowed" });
+        url = next;
+        continue;
+      }
+      upstream = r;
+      break;
+    }
+    if (!upstream) return json(res, 502, { error: "too_many_redirects" });
     if (!upstream.ok || !upstream.body) {
       return json(res, 502, { error: `upstream_${upstream.status}` });
     }

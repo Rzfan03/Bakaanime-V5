@@ -3,7 +3,12 @@ import { timingSafeEqual } from "node:crypto";
 import { SignJWT, jwtVerify } from "jose";
 import { sql } from "./db.js";
 
-const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
+const rawSecret = process.env.AUTH_SECRET;
+// Fail fast: an unset/short secret would silently sign tokens with a guessable key.
+if (!rawSecret || rawSecret.length < 32) {
+  throw new Error("AUTH_SECRET is missing or too short (min 32 chars)");
+}
+const secret = new TextEncoder().encode(rawSecret);
 
 export type User = {
   id: string;
