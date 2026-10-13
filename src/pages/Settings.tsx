@@ -58,17 +58,14 @@ function Texts({
 
 function ControlItem({
   title,
-  desc,
   children,
 }: {
   title: string;
-  desc?: string;
   children: ReactNode;
 }) {
   return (
     <div className="bg-[color:var(--m3-surface-container)] px-4 pb-4 pt-3.5">
       <p className="text-[16px] leading-6 tracking-[0.5px] text-m3-on-surface">{title}</p>
-      {desc && <p className="text-[14px] leading-5 tracking-[0.25px] text-m3-on-surface-variant">{desc}</p>}
       <div className="mt-3">{children}</div>
     </div>
   );
@@ -116,12 +113,10 @@ function Segmented<T extends string>({
 
 function SwitchItem({
   title,
-  desc,
   checked,
   onChange,
 }: {
   title: string;
-  desc?: string;
   checked: boolean;
   onChange: (v: boolean) => void;
 }) {
@@ -133,7 +128,7 @@ function SwitchItem({
       onClick={() => onChange(!checked)}
       className={`${ITEM} ${ITEM_PRESS}`}
     >
-      <Texts title={title} desc={desc} />
+      <Texts title={title} />
       <span
         aria-hidden="true"
         className={`relative h-8 w-[52px] shrink-0 rounded-full transition-colors ${
@@ -240,14 +235,14 @@ export default function Settings() {
         <Group>
           <Link to="/profile" className={`${ITEM} ${ITEM_PRESS} min-h-[88px]`}>
             <FramedAvatar name={user?.name ?? ""} src={user?.avatar} frameId={user?.frame} size={56} />
-            <Texts title={user?.name || "Profil"} desc="Ubah nama, foto, dan bio" />
+            <Texts title={user?.name || "Profil"} />
             <ChevronRight size={24} className={icon} />
           </Link>
         </Group>
 
         <SectionLabel>Tampilan</SectionLabel>
         <Group>
-          <ControlItem title="Tema" desc="Terang atau gelap Material 3. AMOLED memakai hitam pekat dan hemat baterai di layar OLED">
+          <ControlItem title="Tema">
             <Segmented
               label="Tema"
               value={settings.theme}
@@ -256,7 +251,7 @@ export default function Settings() {
             />
           </ControlItem>
 
-          <ControlItem title="Ukuran teks" desc="Berlaku untuk seluruh aplikasi">
+          <ControlItem title="Ukuran teks">
             <Segmented
               label="Ukuran teks"
               value={settings.textSize}
@@ -276,7 +271,6 @@ export default function Settings() {
 
           <SwitchItem
             title="Kurangi animasi"
-            desc="Matikan transisi dan efek gerak"
             checked={settings.reduceMotion}
             onChange={(reduceMotion) => update({ reduceMotion })}
           />
@@ -290,7 +284,7 @@ export default function Settings() {
             className={`${ITEM} ${ITEM_PRESS}`}
           >
             <RotateCcw size={24} className={icon} />
-            <Texts title="Atur ulang tampilan" desc="Kembali ke pengaturan awal" />
+            <Texts title="Atur ulang tampilan" />
           </button>
         </Group>
 
@@ -300,7 +294,6 @@ export default function Settings() {
             <Group>
               <SwitchItem
                 title="Notifikasi episode baru"
-                desc="Beri tahu saat anime di Library punya episode baru"
                 checked={settings.notifications}
                 onChange={(notifications) => {
                   update({ notifications });
@@ -315,10 +308,7 @@ export default function Settings() {
         <Group>
           <button type="button" onClick={() => setDialog("history")} className={`${ITEM} ${ITEM_PRESS}`}>
             <History size={24} className={icon} />
-            <Texts
-              title="Hapus riwayat tontonan"
-              desc="Tanda episode yang sudah ditonton di perangkat ini"
-            />
+            <Texts title="Hapus riwayat tontonan" />
           </button>
         </Group>
 
