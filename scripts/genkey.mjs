@@ -2,7 +2,7 @@ import { randomBytes, createHash } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 
 const [label = "", roleArg = ""] = process.argv.slice(2);
-// Hanya "dev"/"admin" yang dihormati; selain itu user biasa.
+// Only "dev"/"admin" are honored; anything else is a regular user.
 const role = roleArg === "dev" || roleArg === "admin" ? roleArg : "user";
 const url = process.env.DATABASE_URL;
 if (!url) {
