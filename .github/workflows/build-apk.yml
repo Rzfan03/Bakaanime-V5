@@ -94,9 +94,13 @@ jobs:
           else
             RANGE="HEAD~1..HEAD"
           fi
-          # Changelog shown in the update dialog: one bullet per commit, no type prefix.
-          NOTES="$(git log --pretty=format:'%s' --no-merges "$RANGE" 2>/dev/null \
-            | sed -E 's/^[a-z]+(\([^)]*\))?!?: //' | sed 's/^/- /')"
+          # Changelog shown to end users (update modal + atom feed). Prefer the
+          # curated, non-technical RELEASE_NOTES.md; fall back to commit subjects.
+          NOTES="$(cat RELEASE_NOTES.md 2>/dev/null | sed '/^[[:space:]]*$/d')"
+          if [ -z "$NOTES" ]; then
+            NOTES="$(git log --pretty=format:'%s' --no-merges "$RANGE" 2>/dev/null \
+              | sed -E 's/^[a-z]+(\([^)]*\))?!?: //' | sed 's/^/- /')"
+          fi
           [ -n "$NOTES" ] || NOTES="- Perbaikan dan peningkatan"
           gh release view latest >/dev/null 2>&1 \
             || gh release create latest --title "APK v$VER" --notes "$NOTES"
@@ -121,8 +125,11 @@ jobs:
           else
             RANGE="HEAD~1..HEAD"
           fi
-          NOTES="$(git log --pretty=format:'%s' --no-merges "$RANGE" 2>/dev/null \
-            | sed -E 's/^[a-z]+(\([^)]*\))?!?: //' | sed 's/^/- /')"
+          NOTES="$(cat RELEASE_NOTES.md 2>/dev/null | sed '/^[[:space:]]*$/d')"
+          if [ -z "$NOTES" ]; then
+            NOTES="$(git log --pretty=format:'%s' --no-merges "$RANGE" 2>/dev/null \
+              | sed -E 's/^[a-z]+(\([^)]*\))?!?: //' | sed 's/^/- /')"
+          fi
           [ -n "$NOTES" ] || NOTES="- Perbaikan dan peningkatan"
           DATE="$(git log -1 --format=%cI "$GITHUB_SHA")"
           node .github/scripts/update-atom.mjs public/bakaanime.atom "$VER" "$NOTES" "$DATE"

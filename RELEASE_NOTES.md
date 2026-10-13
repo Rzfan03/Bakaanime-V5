@@ -1,0 +1,5 @@
+- Server video kini lebih banyak yang bisa diputar langsung di dalam aplikasi, tanpa keluar.
+- Jika sebuah server tetap tidak bisa diputar, tersedia tombol "Buka di browser".
+- Bagian Download kini tinggal pilih kualitas dan server, lalu tekan tombol Download.
+- Tombol "Unduh batch" tidak lagi membuka ulang aplikasi dari awal.
+- Tombol "Mulai Nonton" dan "Unduh batch" kini sama lebar dan lebih rapi.
