@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useAuth as useClerkAuth, useClerk } from "@clerk/react";
+import { useSignIn, useSignUp } from "@clerk/react/legacy";
+import { Capacitor } from "@capacitor/core";
 import { useAuth } from "../lib/auth";
+import { startNativeSSO } from "../lib/clerk/sso";
 
 const row =
   "flex h-14 w-full items-center bg-[color:var(--m3-surface-low)] text-[15px] font-medium text-[#E6E0E9] outline-none transition-colors hover:bg-[color:var(--m3-surface-high)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D0BCFF]";
@@ -15,6 +18,8 @@ export default function Login() {
 
   const clerk = useClerk();
   const { isSignedIn } = useClerkAuth();
+  const { signIn } = useSignIn();
+  const { signUp } = useSignUp();
 
   const [panel, setPanel] = useState<"none" | "key">("none");
   const [key, setKey] = useState("");
@@ -49,6 +54,20 @@ export default function Login() {
       }
       // Sign out dulu kalau ada stale session yang tidak terdeteksi isSignedIn
       await clerk.signOut({ redirectUrl: undefined });
+      if (Capacitor.isNativePlatform()) {
+        // APK: OAuth lewat system browser + deep link (cookie tak jalan di native).
+        if (!signIn || !signUp) {
+          setBusyGoogle(false);
+          return;
+        }
+        const sessionId = await startNativeSSO({ signIn, signUp, setActive: clerk.setActive });
+        if (!sessionId) {
+          setBusyGoogle(false);
+          return;
+        }
+        await exchange();
+        return;
+      }
       await clerk.client.signIn.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: window.location.origin + "/sso-callback",

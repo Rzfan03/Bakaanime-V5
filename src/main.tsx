@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ClerkProvider } from '@clerk/react'
 import './index.css'
@@ -10,19 +10,22 @@ import { Capacitor } from '@capacitor/core'
 
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string
 
-// Di *.vercel.app Clerk di-proxy lewat /__clerk (tak bisa CNAME).
-// APK (Capacitor) origin-nya app.bakaanime-v5.vercel.app → tak bisa proxy
-// relatif, instance produksi (pk_live) diarahkan ke proxy absolut domain web.
-// Dev lokal (pk_test) tetap bicara langsung ke clerk.accounts.dev.
-const isProdKey = (CLERK_PUBLISHABLE_KEY ?? "").startsWith("pk_live_")
+const isNative = Capacitor.isNativePlatform()
 const hostname = typeof window !== "undefined" ? window.location.hostname : ""
-const CLERK_PROXY_URL = Capacitor.isNativePlatform()
-  ? isProdKey
-    ? "https://bakaanime-v5.vercel.app/__clerk"
-    : undefined
+
+// Web: di *.vercel.app Clerk di-proxy relatif lewat /__clerk (tak bisa CNAME).
+// Native: proxy ditangani di dalam NativeClerkProvider (lib/clerk/native.tsx).
+const CLERK_PROXY_URL = isNative
+  ? undefined
   : hostname.endsWith(".vercel.app")
     ? "/__clerk"
     : undefined
+
+// Provider native memuat @clerk/clerk-js (bearer, tanpa cookie); di-lazy supaya
+// tidak ikut ke bundle web.
+const NativeClerkProvider = lazy(() =>
+  import("./lib/clerk/native").then((m) => ({ default: m.NativeClerkProvider })),
+)
 
 // muat font Pixelify Sans
 const pixelFont = document.createElement('link')
@@ -48,20 +51,34 @@ window.addEventListener(
 
 initSettings() // terapkan tema/ukuran teks/font sebelum render
 
+function Shell() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </BrowserRouter>
+  )
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ClerkProvider
-      publishableKey={CLERK_PUBLISHABLE_KEY}
-      proxyUrl={CLERK_PROXY_URL}
-      afterSignOutUrl="/login"
-      signInFallbackRedirectUrl="/"
-      signUpFallbackRedirectUrl="/"
-    >
-      <BrowserRouter>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </BrowserRouter>
-    </ClerkProvider>
+    {isNative ? (
+      <Suspense fallback={null}>
+        <NativeClerkProvider>
+          <Shell />
+        </NativeClerkProvider>
+      </Suspense>
+    ) : (
+      <ClerkProvider
+        publishableKey={CLERK_PUBLISHABLE_KEY}
+        proxyUrl={CLERK_PROXY_URL}
+        afterSignOutUrl="/login"
+        signInFallbackRedirectUrl="/"
+        signUpFallbackRedirectUrl="/"
+      >
+        <Shell />
+      </ClerkProvider>
+    )}
   </StrictMode>,
 )

@@ -19,6 +19,32 @@ function fapiUrlForPk(pk?: string): string | undefined {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Web memanggil proxy same-origin (tanpa CORS). Native (APK) lintas-origin
+  // dari https://app.bakaanime-v5.vercel.app → butuh CORS + expose `authorization`
+  // (dipakai clerk native bearer via __internal_onAfterResponse).
+  const NATIVE_ORIGINS = [
+    "https://app.bakaanime-v5.vercel.app",
+    "https://localhost",
+    "http://localhost",
+  ];
+  const origin = req.headers.origin as string | undefined;
+  if (origin && NATIVE_ORIGINS.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      (req.headers["access-control-request-headers"] as string) ??
+        "authorization,content-type,x-mobile,x-capacitor-sdk-version",
+    );
+    res.setHeader("Access-Control-Expose-Headers", "authorization");
+    res.setHeader("Access-Control-Max-Age", "86400");
+  }
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return;
+  }
+
   // Vercel rewrite mengubah path jadi /api/clerk-proxy?clerkPath=*, sedangkan
   // clerkFrontendApiProxy butuh pathname asli /__clerk/* → rekonstruksi.
   const url = new URL(req.url ?? "/", `https://${req.headers.host ?? "localhost"}`);
@@ -50,7 +76,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   res.status(response.status);
   response.headers.forEach((value, key) => {
-    if (key.toLowerCase() !== "set-cookie") res.setHeader(key, value);
+    const k = key.toLowerCase();
+    // jangan timpa CORS yang kita set di atas
+    if (k !== "set-cookie" && !k.startsWith("access-control-")) res.setHeader(key, value);
   });
   const cookies = response.headers.getSetCookie();
   if (cookies.length) res.setHeader("set-cookie", cookies);
