@@ -867,13 +867,6 @@ export default function Profile() {
 
           <div className="flex shrink-0 items-center gap-2 pb-1">
             <button
-              onClick={logout}
-              aria-label="Keluar"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#938F99]/70 text-[#CAC4D0] outline-none transition-colors hover:bg-[#D0BCFF]/[0.08] hover:text-[#E6E0E9] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
-            >
-              <LogOut size={16} />
-            </button>
-            <button
               onClick={() => setEditing(true)}
               className="flex h-9 items-center rounded-full bg-[#4A4458] px-4 text-[13px] font-semibold text-[#E8DEF8] outline-none transition-colors hover:bg-[#55506A] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
             >
@@ -1009,6 +1002,17 @@ export default function Profile() {
           )}
         </div>
       )}
+
+      {/* ── Logout ── */}
+      <div className="px-4 pb-6 pt-2">
+        <button
+          onClick={logout}
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[#F2B8B5]/40 text-[14px] font-semibold text-[#F2B8B5] outline-none transition-colors hover:bg-[#F2B8B5]/[0.08] focus-visible:ring-2 focus-visible:ring-[#F2B8B5]"
+        >
+          <LogOut size={18} />
+          Keluar
+        </button>
+      </div>
 
       {/* Spacer bawah (nav sudah disembunyikan) */}
       <div className="h-[calc(24px+env(safe-area-inset-bottom,0px))]" />
