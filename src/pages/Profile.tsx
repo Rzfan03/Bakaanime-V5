@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 
 import { fileToResizedDataUrl } from "../lib/image";
-import { isNative, pickNativeImage } from "../lib/picker";
 import { useAuth } from "../lib/auth";
 import { backend } from "../lib/api/backend";
 import type { UserComment } from "../lib/api/backend";
@@ -749,22 +748,10 @@ export default function Profile() {
   };
 
   const pickImage = (kind: "avatar" | "banner") => {
-    if (isNative()) void handleNativeImage(kind);
-    else (kind === "avatar" ? avatarInputRef : bannerInputRef).current?.click();
-  };
-
-  const handleNativeImage = async (kind: "avatar" | "banner") => {
-    setImageError("");
-    setBusyImage(kind);
-    try {
-      const dataUrl = await pickNativeImage(kind === "avatar" ? 300 : 1000);
-      if (!dataUrl) return;
-      await handleSave(kind === "avatar" ? { avatar: dataUrl } : { banner: dataUrl });
-    } catch {
-      setImageError("Telah Terjadi Sebuah Kesalahan.");
-    } finally {
-      setBusyImage(null);
-    }
+    // Pakai <input type=file> di semua platform: di Android WebView pun memakai
+    // file chooser sistem yang mengembalikan file asli, jadi GIF tetap animasi
+    // (plugin Kamera men-encode ulang jadi JPEG diam).
+    (kind === "avatar" ? avatarInputRef : bannerInputRef).current?.click();
   };
 
   const handleRemoveFav = (slug: string) => {
