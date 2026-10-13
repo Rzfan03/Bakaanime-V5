@@ -11,6 +11,20 @@ function toJpeg(canvas: HTMLCanvasElement): string {
   return canvas.toDataURL("image/jpeg", 0.8);
 }
 
+const GIF_MAGIC = [0x47, 0x49, 0x46, 0x38]; // "GIF8"
+
+// Some devices report an empty MIME type and a name without ".gif", which made
+// us re-encode the file to a static JPEG. Sniff the magic bytes instead.
+export async function looksLikeGif(file: File): Promise<boolean> {
+  if (file.type === "image/gif" || /\.gif$/i.test(file.name)) return true;
+  try {
+    const head = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+    return GIF_MAGIC.every((b, i) => head[i] === b);
+  } catch {
+    return false;
+  }
+}
+
 // fallback for browsers without resize options / formats that can't be bitmap-decoded
 async function viaImageElement(file: File, maxSize: number): Promise<string> {
   const url = URL.createObjectURL(file);

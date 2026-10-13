@@ -25,6 +25,10 @@ alter table users add column if not exists role text not null default 'user';
 -- values: 'default' | 'mono' | 'serif' | 'cursive' | 'pixel' | 'rounded'
 alter table users add column if not exists font text not null default 'default';
 
+-- avatar frame shown next to the user's name (gated per role)
+-- values: 'plain' | 'aurora' | 'neon' | 'hex' | 'ember' | 'orbit' | 'gold'
+alter table users add column if not exists frame text not null default 'plain';
+
 create table if not exists favorites (
   user_id      uuid not null references users(id) on delete cascade,
   anime_slug   text not null,

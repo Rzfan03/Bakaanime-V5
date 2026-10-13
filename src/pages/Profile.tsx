@@ -4,148 +4,26 @@ import {
   BadgeCheck,
   Camera,
   Check,
+  ChevronDown,
   ChevronLeft,
   Loader2,
   Lock,
   Heart,
 } from "lucide-react";
 
-import { fileToResizedDataUrl } from "../lib/image";
+import { fileToResizedDataUrl, looksLikeGif } from "../lib/image";
 import { useAuth } from "../lib/auth";
 import { backend } from "../lib/api/backend";
 import type { UserComment } from "../lib/api/backend";
 import { loadFavorites, removeFavorite } from "../lib/favorites";
 import type { FavoriteItem, UserProfile } from "../lib/storage";
+import { FONT_OPTIONS, fontStyle } from "../lib/fonts";
+import type { FontId } from "../lib/fonts";
+import { FramedAvatar, FRAMES, canUseFrame } from "../components/FramedAvatar";
+import type { FrameId } from "../components/FramedAvatar";
 import Poster from "../components/Poster";
 
 const detailPath = (slug: string) => `/detail/${encodeURIComponent(slug)}`;
-
-type FrameId = "plain" | "aurora" | "neon" | "hex" | "ember" | "orbit" | "gold";
-
-interface FrameDef {
-  id: FrameId;
-  label: string;
-  minRole: "user" | "admin" | "dev";
-  ring: React.CSSProperties;
-  inner?: React.CSSProperties;
-  extra?: string;
-}
-
-const FRAMES: FrameDef[] = [
-  {
-    id: "plain",
-    label: "Polos",
-    minRole: "user",
-    ring: { background: "#4f378b", borderRadius: "50%", padding: 3 },
-  },
-  {
-    id: "aurora",
-    label: "Aurora",
-    minRole: "admin",
-    ring: {
-      background: "conic-gradient(from 0deg, #d0bcff, #efb8c8, #4f378b, #d0bcff)",
-      borderRadius: "50%",
-      padding: 4,
-      animation: "spin 6s linear infinite",
-    },
-    inner: { animation: "spin 6s linear infinite reverse" },
-  },
-  {
-    id: "neon",
-    label: "Neon",
-    minRole: "admin",
-    ring: {
-      background: "#d0bcff",
-      borderRadius: "50%",
-      padding: 4,
-      boxShadow: "0 0 14px 2px #d0bcff",
-      animation: "neon-glow 2s ease-in-out infinite",
-    },
-  },
-  {
-    id: "hex",
-    label: "Hex",
-    minRole: "dev",
-    ring: {
-      background: "linear-gradient(135deg, #d0bcff, #efb8c8)",
-      clipPath: "polygon(50% 0,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)",
-      padding: 5,
-    },
-    inner: {
-      clipPath: "polygon(50% 0,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)",
-      borderRadius: 0,
-    },
-  },
-  {
-    id: "ember",
-    label: "Ember",
-    minRole: "dev",
-    ring: {
-      background: "conic-gradient(from 0deg, #ff7a45, #ffd666, #ff4d4f, #ff7a45)",
-      borderRadius: "50%",
-      padding: 4,
-      boxShadow: "0 0 18px rgba(255,122,69,.55)",
-      animation: "spin 6s linear infinite",
-    },
-    inner: { animation: "spin 6s linear infinite reverse" },
-  },
-  {
-    id: "orbit",
-    label: "Orbit",
-    minRole: "dev",
-    ring: {
-      background: "none",
-      borderRadius: "50%",
-      padding: 10,
-      outline: "2px dashed #d0bcff",
-      outlineOffset: -2,
-      animation: "spin 14s linear infinite",
-    },
-  },
-  {
-    id: "gold",
-    label: "Emas",
-    minRole: "admin",
-    ring: {
-      background: "conic-gradient(#f7e08a,#b8860b,#fff3b0,#b8860b,#f7e08a)",
-      borderRadius: "50%",
-      padding: 5,
-    },
-  },
-];
-
-function roleLevel(role: string): number {
-  if (role === "dev") return 3;
-  if (role === "admin") return 2;
-  return 1;
-}
-
-function canUseFrame(userRole: string, frame: FrameDef): boolean {
-  return roleLevel(userRole) >= roleLevel(frame.minRole);
-}
-
-function AvatarPlaceholder({ name }: { name: string }) {
-  const initials = name
-    .split(" ")
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
-  return (
-    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#4F378B] to-[#7965AF] text-2xl font-bold text-[#EADDFF]">
-      {initials || "?"}
-    </div>
-  );
-}
-
-function AvatarSkeleton() {
-  return (
-    <div
-      className="animate-pulse rounded-full bg-[color:var(--m3-surface-high)]"
-      style={{ width: 104, height: 104 }}
-      aria-label="Memuat foto profil…"
-    />
-  );
-}
 
 function RoleBadge({ role }: { role: string }) {
   if (role === "dev")
@@ -163,7 +41,17 @@ function RoleBadge({ role }: { role: string }) {
   return null;
 }
 
-function AvatarFrame({
+function AvatarSkeleton() {
+  return (
+    <div
+      className="animate-pulse rounded-full bg-[color:var(--m3-surface-high)]"
+      style={{ width: 104, height: 104 }}
+      aria-label="Memuat foto profil…"
+    />
+  );
+}
+
+function AvatarButton({
   src,
   name,
   busy,
@@ -176,71 +64,22 @@ function AvatarFrame({
   frameId: FrameId;
   onClick: () => void;
 }) {
-  const [imgLoaded, setImgLoaded] = useState(!src);
-  const frame = FRAMES.find((f) => f.id === frameId) ?? FRAMES[0];
-
   return (
     <button
       onClick={onClick}
       disabled={busy}
       aria-label="Ubah foto profil"
-      className="group relative shrink-0 outline-none disabled:opacity-80"
+      className="group relative shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#D0BCFF] disabled:opacity-80"
       style={{ width: 104, height: 104 }}
     >
-      {!imgLoaded && (
-        <div className="absolute inset-0 animate-pulse rounded-full bg-[color:var(--m3-surface-high)]" />
-      )}
-
-      <div
-        className="absolute inset-0 flex items-center justify-center"
-        style={{
-          ...frame.ring,
-          opacity: imgLoaded ? 1 : 0,
-          transition: "opacity 0.3s",
-        }}
-      >
-        <div
-          className="flex items-center justify-center overflow-hidden bg-[color:var(--m3-surface)]"
-          style={{
-            width: 104 - ((frame.ring.padding as number) ?? 4) * 2,
-            height: 104 - ((frame.ring.padding as number) ?? 4) * 2,
-            borderRadius: frame.inner?.clipPath ? 0 : "50%",
-            clipPath: frame.inner?.clipPath,
-            ...(frame.inner?.animation ? { animation: frame.inner.animation } : {}),
-          }}
-        >
-          <div
-            className="overflow-hidden"
-            style={{
-              width: "100%",
-              height: "100%",
-              borderRadius: frame.inner?.clipPath ? 0 : "50%",
-              clipPath: frame.inner?.clipPath,
-            }}
-          >
-            {src ? (
-              <img
-                src={src}
-                alt={name}
-                referrerPolicy="no-referrer"
-                className="h-full w-full object-cover"
-                onLoad={() => setImgLoaded(true)}
-                style={{ display: imgLoaded ? "block" : "none" }}
-              />
-            ) : (
-              <AvatarPlaceholder name={name} />
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+      <FramedAvatar src={src} name={name} frameId={frameId} size={104} />
+      <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
         {busy ? (
           <Loader2 size={22} className="animate-spin text-white" />
         ) : (
           <Camera size={22} className="text-white" />
         )}
-      </div>
+      </span>
     </button>
   );
 }
@@ -274,46 +113,12 @@ function FramePicker({
                 active
                   ? "bg-[#4F378B] text-[#EADDFF]"
                   : unlocked
-                  ? "bg-[color:var(--m3-surface-high)] text-[#CAC4D0] hover:bg-[#37343E]"
-                  : "bg-[color:var(--m3-surface-high)] text-[#49454F] opacity-50"
+                    ? "bg-[color:var(--m3-surface-high)] text-[#CAC4D0] hover:bg-[#37343E]"
+                    : "bg-[color:var(--m3-surface-high)] text-[#49454F] opacity-50"
               }`}
             >
-              <div style={{ width: 48, height: 48, position: "relative" }}>
-                <div
-                  className="absolute inset-0 flex items-center justify-center"
-                  style={{ ...frame.ring, animation: "none" }}
-                >
-                  <div
-                    className="flex items-center justify-center overflow-hidden bg-[color:var(--m3-surface)]"
-                    style={{
-                      width: 48 - ((frame.ring.padding as number) ?? 4) * 2,
-                      height: 48 - ((frame.ring.padding as number) ?? 4) * 2,
-                      borderRadius: frame.inner?.clipPath ? 0 : "50%",
-                      clipPath: frame.inner?.clipPath,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        borderRadius: frame.inner?.clipPath ? 0 : "50%",
-                        clipPath: frame.inner?.clipPath,
-                        overflow: "hidden",
-                      }}
-                    >
-                      {avatarSrc ? (
-                        <img
-                          src={avatarSrc}
-                          alt=""
-                          referrerPolicy="no-referrer"
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <AvatarPlaceholder name={userName} />
-                      )}
-                    </div>
-                  </div>
-                </div>
+              <div className="relative">
+                <FramedAvatar src={avatarSrc} name={userName} frameId={frame.id} size={48} />
                 {!unlocked && (
                   <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
                     <Lock size={14} className="text-[#938F99]" />
@@ -334,21 +139,6 @@ function FramePicker({
   );
 }
 
-export type FontId = "default" | "mono" | "serif" | "cursive" | "pixel" | "rounded";
-
-export const FONT_OPTIONS: { id: FontId; label: string; style: React.CSSProperties }[] = [
-  { id: "default", label: "Default", style: { fontFamily: "inherit" } },
-  { id: "mono", label: "Mono", style: { fontFamily: "'Roboto Mono', 'Courier New', monospace" } },
-  { id: "serif", label: "Serif", style: { fontFamily: "Georgia, 'Times New Roman', serif" } },
-  { id: "cursive", label: "Cursive", style: { fontFamily: "'Dancing Script', cursive" } },
-  { id: "pixel", label: "Pixelify", style: { fontFamily: "'Pixelify Sans', monospace" } },
-  { id: "rounded", label: "Rounded", style: { fontFamily: "'Nunito', 'Varela Round', sans-serif", fontWeight: 700 } },
-];
-
-export function fontStyle(fontId: string): React.CSSProperties {
-  return FONT_OPTIONS.find((f) => f.id === fontId)?.style ?? {};
-}
-
 function FontPicker({
   current,
   userName,
@@ -358,34 +148,66 @@ function FontPicker({
   userName: string;
   onChange: (id: FontId) => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const selected = FONT_OPTIONS.find((o) => o.id === current) ?? FONT_OPTIONS[0];
+
   return (
     <div className="mb-4">
       <p className="mb-2 text-[12px] text-[#CAC4D0]">Font username</p>
-      <div className="flex flex-col gap-2">
-        {FONT_OPTIONS.map((opt) => {
-          const active = current === opt.id;
-          return (
-            <button
-              key={opt.id}
-              onClick={() => onChange(opt.id)}
-              className={`flex items-center justify-between rounded-xl px-4 py-3 text-left outline-none transition-colors ${
-                active
-                  ? "bg-[#4F378B] ring-1 ring-[#D0BCFF]"
-                  : "bg-[color:var(--m3-surface-high)] hover:bg-[#37343E]"
-              }`}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          className="flex h-12 w-full items-center justify-between rounded-xl bg-[color:var(--m3-surface-high)] px-4 text-left outline-none ring-1 ring-inset ring-[#49454F] transition-colors hover:bg-[#37343E] focus-visible:ring-2 focus-visible:ring-[#D0BCFF]"
+        >
+          <span className="truncate text-[15px] text-[#E6E0E9]" style={selected.style}>
+            {userName || "Username"}
+          </span>
+          <ChevronDown
+            size={20}
+            className={`shrink-0 text-[#CAC4D0] transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        {open && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+            <ul
+              role="listbox"
+              className="absolute left-0 right-0 z-20 mt-1 max-h-64 overflow-auto rounded-xl bg-[color:var(--m3-surface-high)] py-1 shadow-xl ring-1 ring-[#49454F]"
             >
-              <span
-                className={`text-[15px] ${active ? "text-[#EADDFF]" : "text-[#E6E0E9]"}`}
-                style={opt.style}
-              >
-                {userName || "Username"}
-              </span>
-              <span className={`text-[12px] ${active ? "text-[#D0BCFF]" : "text-[#938F99]"}`}>
-                {opt.label}
-              </span>
-            </button>
-          );
-        })}
+              {FONT_OPTIONS.map((opt) => {
+                const active = current === opt.id;
+                return (
+                  <li key={opt.id}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={active}
+                      onClick={() => {
+                        onChange(opt.id);
+                        setOpen(false);
+                      }}
+                      className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-left outline-none transition-colors ${
+                        active ? "bg-[#4F378B]/40" : "hover:bg-[#37343E]"
+                      }`}
+                    >
+                      <span className="truncate text-[15px] text-[#E6E0E9]" style={opt.style}>
+                        {userName || "Username"}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-2">
+                        <span className="text-[12px] text-[#938F99]">{opt.label}</span>
+                        {active && <Check size={16} className="text-[#D0BCFF]" />}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
       </div>
     </div>
   );
@@ -470,6 +292,21 @@ function EditSheet({
 
         <div className="px-5">
           <h2 className="mb-4 text-[20px] font-bold text-[#E6E0E9]">Edit profil</h2>
+
+          <div className="mb-4 flex items-center gap-3">
+            <FramedAvatar
+              src={profile.avatar}
+              name={name || profile.name}
+              frameId={frameId}
+              size={64}
+            />
+            <p
+              className="min-w-0 truncate text-[17px] font-bold text-[#E6E0E9]"
+              style={fontStyle(fontId)}
+            >
+              {name || "Username"}
+            </p>
+          </div>
 
           <div className="mb-1.5 flex gap-2">
             <button
@@ -601,25 +438,6 @@ function CommentRow({ c }: { c: UserComment }) {
   );
 }
 
-const CSS_KEYFRAMES = `
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes neon-glow {
-  0%,100% { box-shadow: 0 0 6px #d0bcff; }
-  50%      { box-shadow: 0 0 22px 4px #d0bcff; }
-}
-`;
-
-const FRAME_KEY = "bakaanime_avatar_frame";
-
-function readFrame(): FrameId {
-  const v = localStorage.getItem(FRAME_KEY);
-  return (FRAMES.find((f) => f.id === v)?.id ?? "plain") as FrameId;
-}
-
-function saveFrame(id: FrameId) {
-  localStorage.setItem(FRAME_KEY, id);
-}
-
 export default function Profile() {
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
@@ -632,7 +450,9 @@ export default function Profile() {
   const [saved, setSaved] = useState(false);
   const [busyImage, setBusyImage] = useState<"avatar" | "banner" | null>(null);
   const [imageError, setImageError] = useState("");
-  const [frameId, setFrameId] = useState<FrameId>(readFrame);
+  const [frameId, setFrameId] = useState<FrameId>(
+    () => (user?.frame as FrameId) ?? "plain",
+  );
   const [fontId, setFontId] = useState<FontId>(() => (user?.font as FontId) ?? "default");
 
   const [headerSolid, setHeaderSolid] = useState(false);
@@ -691,6 +511,7 @@ export default function Profile() {
     const res = await backend.updateProfile(data);
     setUser(res.user);
     if (res.user.font) setFontId(res.user.font as FontId);
+    setFrameId((res.user.frame as FrameId) ?? "plain");
     flashSaved();
   };
 
@@ -701,10 +522,8 @@ export default function Profile() {
     try {
       const maxSize = 15 * 1024 * 1024;
       if (file.size > maxSize) throw new Error("File terlalu besar (maks. 15 MB).");
-      const isGif =
-        file.type === "image/gif" || /\.gif$/i.test(file.name);
       let dataUrl: string;
-      if (isGif) {
+      if (await looksLikeGif(file)) {
         dataUrl = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result as string);
@@ -736,8 +555,12 @@ export default function Profile() {
   };
 
   const handleFrameChange = (id: FrameId) => {
+    const prev = frameId;
     setFrameId(id);
-    saveFrame(id);
+    void backend
+      .updateProfile({ frame: id })
+      .then((res) => setUser(res.user))
+      .catch(() => setFrameId(prev));
   };
 
   const handleFontChange = (id: FontId) => {
@@ -751,8 +574,6 @@ export default function Profile() {
       className="relative min-h-screen bg-[color:var(--m3-surface)] text-[#E6E0E9]"
       style={{ maxWidth: 480, margin: "0 auto" }}
     >
-      <style>{CSS_KEYFRAMES}</style>
-
       <header
         className={`fixed top-0 left-1/2 z-20 flex w-full max-w-[480px] -translate-x-1/2 items-center gap-1.5 px-2 transition-[background,backdrop-filter] duration-300 ${
           headerSolid
@@ -814,7 +635,7 @@ export default function Profile() {
           {busyImage === "avatar" ? (
             <AvatarSkeleton />
           ) : (
-            <AvatarFrame
+            <AvatarButton
               src={profile.avatar}
               name={profile.name}
               busy={false}

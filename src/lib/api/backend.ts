@@ -75,6 +75,7 @@ export type SessionUser = {
   verified: boolean;
   role: string;
   font: string;
+  frame: string;
 };
 
 export type BackendItem = { slug: string; title: string; poster: string };
@@ -88,6 +89,7 @@ export type BackendComment = {
   author_verified: boolean;
   author_role: string;
   author_font: string;
+  author_frame: string;
 };
 
 // the user's own comments — include anime_slug so they can be shown on the profile
@@ -105,7 +107,7 @@ export const backend = {
       body: { key },
     }),
 
-  updateProfile: (data: Partial<Pick<SessionUser, "name" | "bio" | "avatar" | "banner" | "font">>) =>
+  updateProfile: (data: Partial<Pick<SessionUser, "name" | "bio" | "avatar" | "banner" | "font" | "frame">>) =>
     request<{ user: SessionUser }>("/profile", { method: "PUT", body: data }),
 
   getFavorites: () => request<{ items: BackendItem[] }>("/favorites"),

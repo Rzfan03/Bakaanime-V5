@@ -4,7 +4,8 @@ import { BadgeCheck } from "lucide-react";
 import { backend } from "../lib/api/backend";
 import type { BackendComment } from "../lib/api/backend";
 import { useAuth } from "../lib/auth";
-import { fontStyle } from "../pages/Profile";
+import { fontStyle } from "../lib/fonts";
+import { FramedAvatar } from "./FramedAvatar";
 
 /* Static class strings so Tailwind JIT includes them. Touch feedback uses active:, not hover. */
 const FILLED_BUTTON =
@@ -24,50 +25,6 @@ function timeAgo(iso: string): string {
     month: "short",
     year: "numeric",
   });
-}
-
-function CommentAvatar({
-  name,
-  src,
-  size = 40,
-}: {
-  name: string;
-  src: string | null;
-  size?: number;
-}) {
-  const [err, setErr] = useState(false);
-  useEffect(() => setErr(false), [src]);
-
-  const initials =
-    name
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((w) => w[0]?.toUpperCase() ?? "")
-      .join("") || "?";
-
-  if (src && !err) {
-    return (
-      <img
-        src={src}
-        alt=""
-        referrerPolicy="no-referrer"
-        loading="lazy"
-        onError={() => setErr(true)}
-        className="shrink-0 rounded-full bg-[#2B2930] object-cover"
-        style={{ width: size, height: size }}
-      />
-    );
-  }
-  return (
-    <div
-      aria-hidden="true"
-      className="flex shrink-0 items-center justify-center rounded-full bg-[#4F378B] font-medium text-[#EADDFF]"
-      style={{ width: size, height: size, fontSize: size * 0.4 }}
-    >
-      {initials}
-    </div>
-  );
 }
 
 function VerifiedBadge({ role }: { role: string }) {
@@ -109,7 +66,12 @@ function CommentRow({ comment }: { comment: BackendComment }) {
 
   return (
     <li className={`flex gap-3 rounded-2xl p-4 ${cardTone(comment.author_role)}`}>
-      <CommentAvatar name={comment.author_name} src={comment.author_avatar} size={40} />
+      <FramedAvatar
+        name={comment.author_name}
+        src={comment.author_avatar}
+        frameId={comment.author_frame}
+        size={40}
+      />
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -235,7 +197,7 @@ export default function Comments({ animeSlug }: { animeSlug: string }) {
 
       {user ? (
         <div className="mx-4 mb-5 flex gap-3">
-          <CommentAvatar name={user.name} src={user.avatar} size={40} />
+          <FramedAvatar name={user.name} src={user.avatar} frameId={user.frame} size={40} />
 
           <div className="min-w-0 flex-1 rounded-3xl bg-[#211F26] px-4 pb-3 pt-3.5 ring-1 ring-inset ring-[#49454F] focus-within:ring-2 focus-within:ring-[#D0BCFF]">
             <textarea

@@ -15,6 +15,7 @@ export type User = {
   verified: boolean;
   role: string;
   font: string;
+  frame: string;
 };
 
 export async function createToken(userId: string): Promise<string> {
@@ -55,7 +56,7 @@ export async function loginWithKey(key: string): Promise<User> {
       values (${"key:" + id}, ${id + "@key.local"}, ${label || "Developer"}, true, ${role})
       on conflict (google_sub) do update
         set verified = true, role = excluded.role, name = excluded.name
-      returning id, email, name, avatar, banner, bio, verified, role, font
+      returning id, email, name, avatar, banner, bio, verified, role, font, frame
     `) as User[];
     return rows[0];
   }
@@ -67,14 +68,14 @@ export async function loginWithKey(key: string): Promise<User> {
     insert into users (google_sub, email, name, verified, role)
     values ('dev', 'dev@bakaanime.local', 'Developer', true, 'dev')
     on conflict (google_sub) do update set verified = true, role = 'dev'
-    returning id, email, name, avatar, banner, bio, verified, role, font
+    returning id, email, name, avatar, banner, bio, verified, role, font, frame
   `) as User[];
   return rows[0];
 }
 
 async function userById(id: string): Promise<User | null> {
   const rows = (await sql`
-    select id, email, name, avatar, banner, bio, verified, role, font from users where id = ${id}
+    select id, email, name, avatar, banner, bio, verified, role, font, frame from users where id = ${id}
   `) as User[];
   return rows[0] ?? null;
 }

@@ -118,3 +118,20 @@ html[data-motion="reduce"] *::after {
     animation: none;
   }
 }
+
+/* Avatar frame animations (shared by profile, comments, settings) */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes neon-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 14px 2px #d0bcff;
+  }
+  50% {
+    box-shadow: 0 0 24px 6px #d0bcff;
+  }
+}

@@ -34,7 +34,7 @@ export default guard(async (req: VercelRequest, res: VercelResponse) => {
     insert into users (google_sub, email, name, avatar)
     values (${"clerk:" + sub}, ${email || sub + "@clerk.local"}, ${name || "Pengguna"}, ${avatar ?? null})
     on conflict (google_sub) do update set email = excluded.email
-    returning id, email, name, avatar, banner, bio, verified, role, font
+    returning id, email, name, avatar, banner, bio, verified, role, font, frame
   `;
   const jwt = await createToken((rows[0] as { id: string }).id);
   return json(res, 200, { token: jwt, user: rows[0] });

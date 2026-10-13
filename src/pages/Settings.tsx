@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, History, Info, LogOut, RotateCcw } from "luc
 import { useAuth } from "../lib/auth";
 import { useSettings } from "../lib/settings";
 import type { AppFontId, TextSizeId, ThemeId } from "../lib/settings";
+import { FramedAvatar } from "../components/FramedAvatar";
 
 const ITEM =
   "flex w-full min-h-[72px] items-center gap-4 bg-[color:var(--m3-surface-container)] px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D0BCFF]";
@@ -214,38 +215,6 @@ function Snackbar({ message }: { message: string }) {
   );
 }
 
-function ProfileAvatar({ name, src }: { name: string; src: string | null }) {
-  const [err, setErr] = useState(false);
-  useEffect(() => setErr(false), [src]);
-  const initials =
-    name
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((w) => w[0]?.toUpperCase() ?? "")
-      .join("") || "?";
-
-  if (src && !err) {
-    return (
-      <img
-        src={src}
-        alt=""
-        referrerPolicy="no-referrer"
-        onError={() => setErr(true)}
-        className="h-14 w-14 shrink-0 rounded-full object-cover"
-      />
-    );
-  }
-  return (
-    <span
-      aria-hidden="true"
-      className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#4F378B] text-[22px] font-medium text-[#EADDFF]"
-    >
-      {initials}
-    </span>
-  );
-}
-
 const THEMES: { id: ThemeId; label: string }[] = [
   { id: "dark", label: "Gelap" },
   { id: "amoled", label: "AMOLED" },
@@ -308,7 +277,7 @@ export default function Settings() {
 
         <Group>
           <Link to="/profile" className={`${ITEM} ${ITEM_PRESS} min-h-[88px]`}>
-            <ProfileAvatar name={user?.name ?? ""} src={user?.avatar ?? null} />
+            <FramedAvatar name={user?.name ?? ""} src={user?.avatar} frameId={user?.frame} size={56} />
             <Texts title={user?.name || "Profil"} desc="Ubah nama, foto, dan bio" />
             <ChevronRight size={24} className={icon} />
           </Link>

@@ -8,7 +8,6 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  Info,
   LogOut,
   RefreshCw,
   Search,
@@ -84,7 +83,7 @@ function BannerCarousel({
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--m3-surface)] via-[color:var(--m3-surface)]/40 to-transparent" />
 
-              <div className="absolute inset-x-0 bottom-0 p-5 pb-11">
+              <div className="absolute inset-x-0 bottom-0 p-5 pb-8">
                 <div className="flex flex-wrap gap-2">
                   {anime.type && (
                     <span className="rounded-full bg-[color:var(--m3-surface)]/60 px-3 py-1 text-xs font-medium text-[#EADDFF] backdrop-blur-sm">
@@ -100,10 +99,6 @@ function BannerCarousel({
                 <h3 className="mt-2 line-clamp-2 text-2xl font-medium leading-8 text-[#E6E0E9]">
                   {anime.title}
                 </h3>
-                <span className="mt-3 inline-flex h-10 items-center gap-1.5 rounded-full bg-[#D0BCFF] px-5 text-sm font-medium text-[#381E72] transition-colors group-hover:bg-[#DCCBFF]">
-                  <Info size={18} />
-                  Lihat detail
-                </span>
               </div>
             </Link>
           </SwiperSlide>
