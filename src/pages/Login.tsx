@@ -10,6 +10,14 @@ import { startNativeSSO } from "../lib/clerk/sso";
 const row =
   "flex h-14 w-full items-center bg-[color:var(--m3-surface-low)] text-[15px] font-medium text-[#E6E0E9] outline-none transition-colors hover:bg-[color:var(--m3-surface-high)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D0BCFF]";
 
+// tampilkan pesan asli Clerk (sementara, buat debug di APK tanpa console)
+function errText(e: unknown): string {
+  const a = e as { errors?: { code?: string; message?: string }[]; message?: string };
+  const f = a?.errors?.[0];
+  if (f?.message) return f.code ? `${f.message} (${f.code})` : f.message;
+  return a?.message ?? "Telah Terjadi Sebuah Kesalahan.";
+}
+
 export default function Login() {
   const { user, loading: authLoading, loginWithKey, exchange, logout } = useAuth();
   const navigate = useNavigate();
@@ -35,8 +43,9 @@ export default function Login() {
   // Kalau exchange gagal → logout Clerk biar bersih
   useEffect(() => {
     if (isSignedIn && !authLoading && !user) {
-      exchange().catch(() => {
+      exchange().catch((e) => {
         // Exchange gagal (mis. stale session) → paksa logout Clerk
+        console.error("[exchange]", e);
         logout();
       });
     }
@@ -75,7 +84,8 @@ export default function Login() {
       });
     } catch (e) {
       console.error("[login google]", e);
-      setError("Telah Terjadi Sebuah Kesalahan.");
+      // detail hanya di APK (buat debug tanpa console); web tetap generik
+      setError(Capacitor.isNativePlatform() ? errText(e) : "Telah Terjadi Sebuah Kesalahan.");
       setBusyGoogle(false);
     }
   };
