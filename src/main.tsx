@@ -6,19 +6,22 @@ import App from './App.tsx'
 import { BrowserRouter } from 'react-router'
 import { AuthProvider } from './lib/auth.tsx'
 import { initSettings } from './lib/settings.ts'
+import { Capacitor } from '@capacitor/core'
 
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string
 
 // Di *.vercel.app Clerk di-proxy lewat /__clerk (tak bisa CNAME).
-// APK (Capacitor, origin https://localhost) tak bisa pakai proxy relatif, jadi
-// instance produksi (pk_live) diarahkan ke proxy absolut di domain web.
+// APK (Capacitor) origin-nya app.bakaanime-v5.vercel.app → tak bisa proxy
+// relatif, instance produksi (pk_live) diarahkan ke proxy absolut domain web.
 // Dev lokal (pk_test) tetap bicara langsung ke clerk.accounts.dev.
 const isProdKey = (CLERK_PUBLISHABLE_KEY ?? "").startsWith("pk_live_")
 const hostname = typeof window !== "undefined" ? window.location.hostname : ""
-const CLERK_PROXY_URL = hostname.endsWith(".vercel.app")
-  ? "/__clerk"
-  : isProdKey
+const CLERK_PROXY_URL = Capacitor.isNativePlatform()
+  ? isProdKey
     ? "https://bakaanime-v5.vercel.app/__clerk"
+    : undefined
+  : hostname.endsWith(".vercel.app")
+    ? "/__clerk"
     : undefined
 
 // muat font Pixelify Sans

@@ -5,6 +5,7 @@ const ORIGINS = [
   "http://localhost:5173",
   "http://localhost:4173",
   "https://localhost", // Capacitor android webview
+  "https://app.bakaanime-v5.vercel.app", // Capacitor android webview (produksi)
 ];
 
 export function applyCors(req: VercelRequest, res: VercelResponse) {
