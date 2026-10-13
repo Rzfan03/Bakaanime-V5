@@ -30,8 +30,10 @@ dist-ssr
 *.sw?
 
 # Release signing keystore (secret)
-bakaanime-release.keystore
+*.keystore
+*.jks
 keystore.b64
+keystore.base64
 
 # AI / design-tool artifacts (not part of the app)
 .ui-craft/
