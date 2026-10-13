@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type FrameId = "plain" | "aurora" | "neon" | "hex" | "ember" | "orbit" | "gold";
 
@@ -138,19 +138,22 @@ export function FramedAvatar({
   frameId?: string | null;
   className?: string;
 }) {
-  const [imgLoaded, setImgLoaded] = useState(false);
-  const [imgError, setImgError] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [status, setStatus] = useState<{ src: string; ok: boolean } | null>(null);
 
+  // A cached image can already be `complete` before React attaches onLoad, so
+  // onLoad never fires. Read completeness straight off the node after mount.
   useEffect(() => {
-    setImgLoaded(false);
-    setImgError(false);
+    const el = imgRef.current;
+    if (el?.complete) setStatus({ src: src ?? "", ok: el.naturalWidth > 0 });
   }, [src]);
 
   const frame = frameById(frameId);
   const pad = (frame.ring.padding as number) ?? 4;
   const inner = size - pad * 2;
-  const showImg = !!src && !imgError;
-  const loading = showImg && !imgLoaded;
+  const resolved = src && status?.src === src ? (status.ok ? "ok" : "error") : undefined;
+  const showImg = !!src && resolved !== "error";
+  const loading = !!src && resolved !== "ok";
 
   return (
     <div className={`relative shrink-0 ${className}`} style={{ width: size, height: size }}>
@@ -184,13 +187,14 @@ export function FramedAvatar({
             {showImg ? (
               <img
                 key={src}
+                ref={imgRef}
                 src={src}
                 alt={name}
                 referrerPolicy="no-referrer"
                 className="h-full w-full object-cover"
-                onLoad={() => setImgLoaded(true)}
-                onError={() => setImgError(true)}
-                style={{ display: imgLoaded ? "block" : "none" }}
+                onLoad={() => setStatus({ src, ok: true })}
+                onError={() => setStatus({ src, ok: false })}
+                style={{ display: resolved === "ok" ? "block" : "none" }}
               />
             ) : (
               <AvatarPlaceholder name={name} size={inner} />
