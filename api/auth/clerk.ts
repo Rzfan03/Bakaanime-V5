@@ -6,16 +6,6 @@ import { guard, json, preflight, readBody } from "../_lib/http.js";
 
 type Body = { token?: string; name?: string; email?: string; avatar?: string | null };
 
-// Origins allowed to mint a session token (checked against the token's `azp`).
-const AUTHORIZED_PARTIES = [
-  "https://bakaanime-v5.vercel.app", // web (production)
-  "https://app.bakaanime-v5.vercel.app", // Capacitor Android webview
-  "https://localhost", // Capacitor Android webview origin
-  "capacitor://localhost", // Capacitor iOS webview origin
-  "http://localhost:5173", // vite dev
-  "http://localhost:3000", // vercel dev
-];
-
 // Exchange a Clerk session for our JWT. Token signature verification uses JWKS
 // fetched via the Clerk Backend API (secret key), independent of the pk host / proxy domain.
 export default guard(async (req: VercelRequest, res: VercelResponse) => {
@@ -30,10 +20,10 @@ export default guard(async (req: VercelRequest, res: VercelResponse) => {
 
   let sub = "";
   try {
-    const payload = await verifyToken(token, {
-      secretKey,
-      authorizedParties: AUTHORIZED_PARTIES,
-    });
+    // No authorizedParties: the native/proxy session tokens carry no `azp` claim,
+    // so that check would reject every login. Signature verification against this
+    // instance's JWKS (via secretKey) is the boundary that only accepts our tokens.
+    const payload = await verifyToken(token, { secretKey });
     sub = (payload?.sub ?? "") as string;
   } catch (e) {
     console.error("[clerk] verify failed", e);
