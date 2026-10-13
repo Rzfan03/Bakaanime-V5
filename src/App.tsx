@@ -1,5 +1,7 @@
-import { useState } from "react";
-import { Navigate, Outlet, Route, Routes, useLocation } from "react-router";
+import { useEffect, useState } from "react";
+import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from "react-router";
+import { Capacitor } from "@capacitor/core";
+import { App as CapacitorApp } from "@capacitor/app";
 import Home from "./pages/Home";
 import Navigation from "./components/Navigation";
 import Detail from "./pages/Detail";
@@ -39,6 +41,19 @@ function ProtectedLayout() {
 export default function App() {
   const { loading } = useAuth();
   const [splashDone, setSplashDone] = useState(false);
+  const navigate = useNavigate();
+
+  // Tombol back Android: kembali ke halaman sebelumnya, keluar hanya di root.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const handle = CapacitorApp.addListener("backButton", ({ canGoBack }) => {
+      if (canGoBack) navigate(-1);
+      else void CapacitorApp.exitApp();
+    });
+    return () => {
+      void handle.then((h) => h.remove());
+    };
+  }, [navigate]);
 
   if (window.location.pathname === "/sso-callback") {
     return (

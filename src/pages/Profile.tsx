@@ -7,7 +7,6 @@ import {
   ChevronLeft,
   Loader2,
   Lock,
-  LogOut,
   Heart,
 } from "lucide-react";
 
@@ -651,7 +650,7 @@ function saveFrame(id: FrameId) {
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, logout, setUser } = useAuth();
+  const { user, setUser } = useAuth();
 
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [comments, setComments] = useState<UserComment[]>([]);
@@ -1002,17 +1001,6 @@ export default function Profile() {
           )}
         </div>
       )}
-
-      {/* ── Logout ── */}
-      <div className="px-4 pb-6 pt-2">
-        <button
-          onClick={logout}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[#F2B8B5]/40 text-[14px] font-semibold text-[#F2B8B5] outline-none transition-colors hover:bg-[#F2B8B5]/[0.08] focus-visible:ring-2 focus-visible:ring-[#F2B8B5]"
-        >
-          <LogOut size={18} />
-          Keluar
-        </button>
-      </div>
 
       {/* Spacer bawah (nav sudah disembunyikan) */}
       <div className="h-[calc(24px+env(safe-area-inset-bottom,0px))]" />

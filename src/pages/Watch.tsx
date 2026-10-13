@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
+import { StatusBar } from "@capacitor/status-bar";
 import { describeError, getDetail, getEpisode, getHome } from "../lib/api/anime";
 import { markWatched, readFavorites } from "../lib/storage";
 import type { FavoriteItem } from "../lib/storage";
@@ -152,7 +153,7 @@ export default function Watch() {
   const [toast, setToast] = useState("");
   const downloadRef = useRef<HTMLElement | null>(null);
 
-  /* ── Orientation: unlock landscape saat fullscreen, lock portrait lagi saat keluar ── */
+  /* ── Fullscreen: sembunyikan status bar + landscape; keluar → balik portrait ── */
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
@@ -160,9 +161,11 @@ export default function Watch() {
       const isFs = !!document.fullscreenElement;
       try {
         if (isFs) {
-          await ScreenOrientation.unlock();
+          await ScreenOrientation.lock({ orientation: "landscape" });
+          await StatusBar.hide();
         } else {
           await ScreenOrientation.lock({ orientation: "portrait" });
+          await StatusBar.show();
         }
       } catch {
         /* plugin belum ready / web */
@@ -175,8 +178,9 @@ export default function Watch() {
     return () => {
       document.removeEventListener("fullscreenchange", onFsChange);
       document.removeEventListener("webkitfullscreenchange", onFsChange as EventListener);
-      // pastikan kembali portrait saat keluar halaman Watch
+      // pastikan balik normal saat keluar halaman Watch
       void ScreenOrientation.lock({ orientation: "portrait" }).catch(() => {});
+      void StatusBar.show().catch(() => {});
     };
   }, []);
 
